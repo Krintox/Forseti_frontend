@@ -1,95 +1,295 @@
-import React from 'react';
-import { Play, RotateCcw, FastForward, Shield, Zap } from 'lucide-react';
+'use client';
 
-interface ArenaControlsProps {
-  currentRound: number;
-  dtlActive: boolean;
-  isRunning: boolean;
-  onSelectRound: (round: number) => void;
-  onRunCurrentRound: () => void;
-  onRunDeterministicDemo: () => void;
-  onReset: () => void;
-}
+import React, { useEffect, useState } from 'react';
+import { Pause, Play, RotateCcw, Wallet } from 'lucide-react';
+import { useArena } from '../lib/ArenaProvider';
+import { inr } from '../lib/api';
+import { AnimatedNumber, Badge, Button } from './ui';
 
-export const ArenaControls: React.FC<ArenaControlsProps> = ({
-  currentRound,
-  dtlActive,
-  isRunning,
-  onSelectRound,
-  onRunCurrentRound,
-  onRunDeterministicDemo,
-  onReset,
-}) => {
-  const rounds = [
-    { num: 1, name: "Intent Laundering (Grocery MCC + Gift Card)" },
-    { num: 2, name: "Flagship Cross-Rail Budget Splitting (₹4k x 3)" },
-    { num: 3, name: "Adaptive Baseline Poisoning" },
-    { num: 4, name: "Revocation Flooding (Race Condition)" },
-    { num: 5, name: "Velocity Card Testing Spike" },
-    { num: 6, name: "Sub-Agent Scope Creep (Hierarchy Escalation)" },
-  ];
+const STRATEGIES = [
+  { key: 'CROSS_RAIL_SPLIT', round: 2, label: 'Cross-Rail Split', flagship: true },
+  { key: 'INTENT_LAUNDERING', round: 1, label: 'Intent Laundering' },
+  { key: 'BASELINE_POISONING', round: 3, label: 'Baseline Poisoning' },
+  { key: 'REVOCATION_FLOOD', round: 4, label: 'Revocation Flood' },
+  { key: 'VELOCITY_BURST', round: 5, label: 'Velocity Burst' },
+  { key: 'SCOPE_CREEP', round: 6, label: 'Scope Creep' },
+];
+
+/**
+ * Attack launcher plus the manual delegated-limit control.
+ *
+ * Changing the limit calls the backend, which recomputes headroom; the exposure
+ * meter and every downstream page then reflect the new ceiling immediately.
+ */
+export function ArenaControls() {
+  const { runRound, reset, setLimit, isRunning, ceiling, exposure, headroom, utilization, speed, setSpeed, state } =
+    useArena();
+  const [dtlEnabled, setDtlEnabled] = useState(true);
+  // A campaign: any subset of vectors, run back to back against one grant.
+  // Selecting several is how you show the Red agent adapting between rounds.
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([STRATEGIES[0].key]);
+  const [campaignAt, setCampaignAt] = useState<number>(0);
+  const [limitInput, setLimitInput] = useState<string>('10000');
+  const [applying, setApplying] = useState(false);
+
+  useEffect(() => {
+    if (ceiling) setLimitInput(String(Math.round(ceiling)));
+  }, [ceiling]);
+
+  const toggle = (key: string) =>
+    setSelectedKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
+
+  const allSelected = selectedKeys.length === STRATEGIES.length;
+  const selectAll = () =>
+    setSelectedKeys(allSelected ? [STRATEGIES[0].key] : STRATEGIES.map((s) => s.key));
+
+  const runCampaign = async () => {
+    const queue = STRATEGIES.filter((s) => selectedKeys.includes(s.key));
+    for (let i = 0; i < queue.length; i++) {
+      setCampaignAt(i + 1);
+      await runRound(queue[i].round, dtlEnabled, queue[i].key);
+    }
+    setCampaignAt(0);
+  };
+
+  const applyLimit = async () => {
+    const parsed = Number(limitInput);
+    if (!Number.isFinite(parsed) || parsed < 0) return;
+    setApplying(true);
+    try {
+      await setLimit(parsed);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const breached = ceiling > 0 && exposure > ceiling;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-xl mb-6">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-        {/* Round Selector Dropdown / Pills */}
-        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
-          <span className="text-xs font-mono text-slate-400 font-semibold uppercase whitespace-nowrap">
-            Attack Round:
+    <div className="space-y-4">
+      {/* delegated authority control */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Wallet className="h-4 w-4 text-blue-600" />
+          <h3 className="text-[13px] font-bold uppercase tracking-wide text-slate-800">
+            Delegated Authority
+          </h3>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+          Set the ceiling the user grants the agent. Every rail may individually allow more than
+          this; the DTL enforces the total.
+        </p>
+
+        <div className="mt-3 flex items-end gap-2">
+          <div className="flex-1">
+            <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Delegated limit (₹)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={500}
+              value={limitInput}
+              onChange={(e) => setLimitInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && applyLimit()}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-bold tabular-nums outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <Button onClick={applyLimit} disabled={applying || isRunning}>
+            {applying ? 'Applying' : 'Apply'}
+          </Button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {[5000, 10000, 12000, 20000].map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setLimitInput(String(v))}
+              className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 transition-colors hover:bg-slate-200"
+            >
+              {inr(v)}
+            </button>
+          ))}
+        </div>
+
+        {/* live deduction readout */}
+        <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <Row label="Ceiling" value={inr(ceiling)} />
+          <Row
+            label="Exposure"
+            value={<AnimatedNumber value={exposure} format={(n) => inr(n)} />}
+            tone={breached ? 'danger' : 'default'}
+          />
+          <Row
+            label="Headroom"
+            value={<AnimatedNumber value={headroom} format={(n) => inr(n)} />}
+            tone={headroom <= 0 ? 'danger' : 'success'}
+          />
+          <div className="pt-1">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  utilization >= 100 ? 'bg-rose-500' : utilization >= 80 ? 'bg-amber-500' : 'bg-emerald-500'
+                }`}
+                style={{ width: `${Math.min(100, utilization)}%` }}
+              />
+            </div>
+            <p className="mt-1 text-right font-mono text-[10px] font-bold text-slate-500">
+              {utilization.toFixed(1)}% of delegated authority used
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* attack launcher */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="text-[13px] font-bold uppercase tracking-wide text-slate-800">
+          Launch Attack
+        </h3>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Runs the real Red Team vector against the live simulator and streams every backend step.
+        </p>
+
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+            Vectors ({selectedKeys.length} selected)
           </span>
-          <div className="flex items-center gap-1.5">
-            {rounds.map((r) => (
+          <button
+            type="button"
+            onClick={selectAll}
+            className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 transition-colors hover:bg-slate-200"
+          >
+            {allSelected ? 'Clear' : 'Select all'}
+          </button>
+        </div>
+
+        <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+          {STRATEGIES.map((s) => {
+            const on = selectedKeys.includes(s.key);
+            return (
               <button
-                key={r.num}
-                onClick={() => onSelectRound(r.num)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all whitespace-nowrap ${
-                  currentRound === r.num
-                    ? 'bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/30'
-                    : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                key={s.key}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggle(s.key)}
+                className={`flex items-start gap-1.5 rounded-lg border px-2.5 py-2 text-left text-[10px] font-bold uppercase leading-tight tracking-wide transition-colors ${
+                  on
+                    ? 'border-rose-500 bg-rose-50 text-rose-700'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                R{r.num}
+                <span
+                  className={`mt-0.5 flex h-3 w-3 shrink-0 items-center justify-center rounded-[3px] border text-[8px] ${
+                    on ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-300 bg-white'
+                  }`}
+                >
+                  {on ? '✓' : ''}
+                </span>
+                <span>
+                  {s.label}
+                  {s.flagship && (
+                    <span className="mt-1 block text-[8px] font-bold text-rose-500">FLAGSHIP</span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+          <div>
+            <p className="text-[11px] font-bold text-slate-700">DTL defense</p>
+            <p className="text-[9.5px] text-slate-500">
+              {dtlEnabled ? 'Global authority check active' : 'Legacy mode — rails act alone'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDtlEnabled((v) => !v)}
+            className={`relative h-5 w-9 rounded-full transition-colors ${
+              dtlEnabled ? 'bg-emerald-500' : 'bg-slate-300'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                dtlEnabled ? 'translate-x-4.5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <label className="text-[10px] font-bold uppercase text-slate-500">Speed</label>
+          <div className="flex gap-1">
+            {[0.25, 0.5, 1, 2].map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSpeed(s)}
+                className={`rounded-md px-2 py-1 text-[10px] font-bold transition-colors ${
+                  speed === s ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {s}x
               </button>
             ))}
           </div>
-          <span className="text-xs text-slate-300 font-mono hidden xl:inline ml-2 text-rose-300">
-            [{rounds[currentRound - 1]?.name}]
-          </span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-          {/* Deterministic Replay Button */}
-          <button
-            onClick={onRunDeterministicDemo}
-            disabled={isRunning}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold font-mono bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 shadow-lg shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-50"
+        <div className="mt-4 flex gap-2">
+          <Button
+            variant="danger"
+            className="flex-1"
+            disabled={isRunning || selectedKeys.length === 0}
+            onClick={runCampaign}
           >
-            <Zap className="h-4 w-4 fill-slate-950" />
-            1-CLICK DEMO (90s Replay)
-          </button>
-
-          {/* Run Round Button */}
-          <button
-            onClick={onRunCurrentRound}
-            disabled={isRunning}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold font-mono bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <Play className="h-4 w-4 fill-white" />
-            FIRE ATTACK (R{currentRound})
-          </button>
-
-          {/* Reset Arena */}
-          <button
-            onClick={onReset}
-            disabled={isRunning}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono bg-slate-950 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-colors"
-          >
+            {isRunning ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+            {isRunning
+              ? campaignAt
+                ? `Running ${campaignAt}/${selectedKeys.length}`
+                : 'Running'
+              : selectedKeys.length > 1
+                ? `Execute ${selectedKeys.length} Attacks`
+                : 'Execute Attack'}
+          </Button>
+          <Button variant="ghost" disabled={isRunning} onClick={() => reset(Number(limitInput) || undefined)}>
             <RotateCcw className="h-3.5 w-3.5" />
             Reset
-          </button>
+          </Button>
         </div>
+
+        {state?.detector_status && !state.detector_status.model_loaded && (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-semibold text-amber-800">
+            No trained model loaded — ML scores will report NOT TRAINED. Run{' '}
+            <code className="font-mono">python -m app.detector.train</code>.
+          </p>
+        )}
       </div>
     </div>
   );
-};
+}
+
+function Row({
+  label,
+  value,
+  tone = 'default',
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: 'default' | 'danger' | 'success';
+}) {
+  const toneClass = {
+    default: 'text-slate-900',
+    danger: 'text-rose-600',
+    success: 'text-emerald-600',
+  }[tone];
+  return (
+    <div className="flex items-baseline justify-between">
+      <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
+      <span className={`font-mono text-sm font-bold ${toneClass}`}>{value}</span>
+    </div>
+  );
+}
