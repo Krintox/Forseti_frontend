@@ -31,6 +31,7 @@ const W = 1000;
 const H = 560;
 
 const NODES: NodeDef[] = [
+  { id: 'principal', label: 'USER GRANT', sub: 'Delegated authority', x: 40, y: 40, w: 150, h: 78, icon: Scale, accent: '#0f172a' },
   { id: 'red_agent', label: 'RED AGENT', sub: 'AGT-7721', x: 40, y: 210, w: 150, h: 96, icon: Bot, accent: '#e11d48' },
   { id: 'card_token', label: 'CARD RAIL', sub: 'Card-token adapter', x: 268, y: 40, w: 168, h: 92, icon: CreditCard, accent: '#2563eb' },
   { id: 'upi_circle', label: 'UPI RAIL', sub: 'UPI-Circle adapter', x: 268, y: 172, w: 168, h: 92, icon: Smartphone, accent: '#7c3aed' },
@@ -84,7 +85,7 @@ const SEVERITY_COLOR: Record<string, string> = {
   info: '#2563eb',
 };
 
-export function AttackFlowCanvas() {
+export function AttackFlowCanvas({ onNodeClick }: { onNodeClick?: (nodeId: string) => void }) {
   const { events, latest, activeEdge, exposure, ceiling, railTotals, currentStep, totalSteps, strategy } =
     useArena();
 
@@ -126,6 +127,7 @@ export function AttackFlowCanvas() {
             {strategy
               ? `${strategy.replace(/_/g, ' ')} — step ${currentStep}${totalSteps ? ` of ${totalSteps}` : ''}`
               : 'Idle — launch a round to stream live backend events'}
+            {onNodeClick && <span className="ml-1.5 text-slate-400">· click any box to explain it</span>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-[10px] font-semibold">
@@ -153,6 +155,7 @@ export function AttackFlowCanvas() {
 
           {/* static skeleton so the topology is readable while idle */}
           {[
+            ['principal', 'dtl'],
             ['red_agent', 'card_token'],
             ['red_agent', 'upi_circle'],
             ['red_agent', 'agentic_ap2'],
@@ -219,7 +222,20 @@ export function AttackFlowCanvas() {
             const amount = railAmount[node.id];
 
             return (
-              <g key={node.id}>
+              <g
+                key={node.id}
+                role={onNodeClick ? 'button' : undefined}
+                tabIndex={onNodeClick ? 0 : undefined}
+                aria-label={onNodeClick ? `Explain ${node.label}` : undefined}
+                onClick={() => onNodeClick?.(node.id)}
+                onKeyDown={(e) => {
+                  if (onNodeClick && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    onNodeClick(node.id);
+                  }
+                }}
+                style={{ cursor: onNodeClick ? 'pointer' : 'default' }}
+              >
                 <motion.rect
                   x={node.x}
                   y={node.y}
@@ -229,6 +245,7 @@ export function AttackFlowCanvas() {
                   fill="#ffffff"
                   stroke={isActive ? node.accent : isRail && touched ? node.accent : '#e2e8f0'}
                   strokeWidth={isActive ? 3 : isRail && touched ? 2 : 1.5}
+                  whileHover={onNodeClick ? { scale: 1.03 } : undefined}
                   animate={
                     isActive
                       ? { scale: [1, 1.025, 1], filter: 'drop-shadow(0 6px 18px rgba(15,23,42,0.13))' }

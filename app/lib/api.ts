@@ -25,6 +25,21 @@ export const api = {
       body: JSON.stringify({ delegated_limit }),
     }),
 
+  setAuthorityScope: (profile: {
+    global_budget_ceiling?: number;
+    permitted_rails?: string[];
+    per_transaction_cap?: number | null;
+    permitted_mccs?: string[];
+    validity_window_hours?: number;
+    economic_purpose?: string;
+  }) =>
+    req<ArenaState>('/api/arena/authority-scope', {
+      method: 'POST',
+      body: JSON.stringify(profile),
+    }),
+
+  authorityVector: () => req<any>('/api/arena/authority-vector'),
+
   reset: (delegated_limit?: number) =>
     req<any>('/api/arena/reset', {
       method: 'POST',

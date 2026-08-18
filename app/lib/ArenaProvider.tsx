@@ -36,7 +36,7 @@ interface ArenaContextValue {
   strategy: string | null;
   isRunning: boolean;
   lastRound: RoundResult | null;
-  winner: 'RED' | 'BLUE' | null;
+  winner: 'RED' | 'BLUE' | 'NONE' | null;
   speed: number;
   setSpeed: (s: number) => void;
   refreshState: () => Promise<void>;
@@ -153,7 +153,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     let strategy: string | null = null;
     let currentStep = 0;
     let totalSteps = 0;
-    let winner: 'RED' | 'BLUE' | null = null;
+    let winner: 'RED' | 'BLUE' | 'NONE' | null = null;
     const railTotals: Record<string, number> = {
       CARD_TOKEN: 0,
       UPI_CIRCLE: 0,
@@ -188,7 +188,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
         if (typeof p.ceiling === 'number') ceiling = p.ceiling;
       }
       if (e.event_type === 'ATTACK_COMPLETE') {
-        winner = (p.winner as 'RED' | 'BLUE') ?? null;
+        winner = (p.winner as 'RED' | 'BLUE' | 'NONE') ?? null;
         if (typeof p.final_exposure === 'number') exposure = p.final_exposure;
       }
     }

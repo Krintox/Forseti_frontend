@@ -8,6 +8,7 @@ import { AttackFlowCanvas } from '../components/AttackFlowCanvas';
 import { ArenaControls } from '../components/ArenaControls';
 import { EventLog } from '../components/EventLog';
 import { EventInspector } from '../components/EventInspector';
+import { NodeInspector } from '../components/NodeInspector';
 import { Badge, Card, InfoNote, PageHeader } from '../components/ui';
 import { useArena } from '../lib/ArenaProvider';
 import { inr } from '../lib/api';
@@ -16,6 +17,7 @@ function ArenaView() {
   const { events, winner, lastRound, strategy, currentStep, totalSteps, exposure, ceiling, runRound, isRunning, lastError } =
     useArena();
   const [inspected, setInspected] = useState<any>(null);
+  const [inspectedNode, setInspectedNode] = useState<string | null>(null);
   const params = useSearchParams();
   const autoStarted = useRef(false);
 
@@ -47,8 +49,12 @@ function ArenaView() {
           </Badge>
         )}
         {winner && (
-          <Badge tone={winner === 'BLUE' ? 'green' : 'red'}>
-            {winner === 'BLUE' ? 'Blue team holds' : 'Red team wins'}
+          <Badge tone={winner === 'BLUE' ? 'green' : winner === 'NONE' ? 'slate' : 'red'}>
+            {winner === 'BLUE'
+              ? 'Blue team holds'
+              : winner === 'NONE'
+                ? 'No violation — within authority'
+                : 'Red team wins'}
           </Badge>
         )}
       </PageHeader>
@@ -65,7 +71,7 @@ function ArenaView() {
         </div>
 
         <div className="order-1 space-y-5 xl:order-2">
-          <AttackFlowCanvas />
+          <AttackFlowCanvas onNodeClick={(id) => { setInspected(null); setInspectedNode(id); }} />
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <Card title="Why each rail said yes" subtitle="The fragmentation the attack exploits">
@@ -183,11 +189,12 @@ function ArenaView() {
         </div>
 
         <div className="order-3 xl:sticky xl:top-6 xl:h-[calc(100vh-7rem)]">
-          <EventLog height="" onSelect={setInspected} />
+          <EventLog height="" onSelect={(e) => { setInspectedNode(null); setInspected(e); }} />
         </div>
       </div>
 
       <EventInspector event={inspected} onClose={() => setInspected(null)} />
+      <NodeInspector nodeId={inspectedNode} onClose={() => setInspectedNode(null)} />
     </>
   );
 }

@@ -35,7 +35,7 @@ export default function AiStudioPage() {
     <>
       <PageHeader
         title="AI Studio"
-        description="Twelve agents that handle the work a payments team inherits the moment agentic spending ships. Every one is advisory: the LLM explains, translates and proposes, and the deterministic engine still decides."
+        description="The invention is the delegation-authority engine, not this page. These twelve agents are the intelligence layer around it: the LLM explains, translates and proposes, and the deterministic engine still decides every outcome."
       >
         <Badge tone={llm?.available ? 'green' : 'amber'}>
           {llm?.available ? `${llm.keys_live}/${llm.keys_configured} keys live` : 'LLM unavailable'}
@@ -54,6 +54,8 @@ export default function AiStudioPage() {
       </div>
 
       <InfoNote>{status?.design_rule}</InfoNote>
+
+      {status?.hierarchy && <SystemHierarchy hierarchy={status.hierarchy} />}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <IntentCompiler />
@@ -651,5 +653,88 @@ function ModelCard() {
         Refuses to emit a card with no stated weaknesses.
       </p>
     </AgentCard>
+  );
+}
+
+/**
+ * The architectural hierarchy, served by the backend.
+ *
+ * This exists to prevent the most likely misreading of this project: that it is
+ * twelve loosely-related AI features. It is one invention - the multidimensional
+ * delegation-authority engine - with an intelligence layer wrapped around it.
+ */
+function SystemHierarchy({ hierarchy }: { hierarchy: any }) {
+  const core = hierarchy.core ?? [];
+  const attack = core.filter((c: any) => c.layer === 'ATTACK');
+  const defense = core.filter((c: any) => c.layer === 'DEFENSE');
+
+  return (
+    <Card
+      title="What is actually the invention"
+      subtitle="Read this before the agent list below"
+    >
+      <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-4">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-blue-700">The invention</p>
+        <p className="mt-1 text-sm font-bold text-slate-900">{hierarchy.invention?.name}</p>
+        <p className="mt-1.5 text-[12px] leading-relaxed text-slate-700">{hierarchy.invention?.claim}</p>
+        <p className="mt-2 text-[11px] leading-relaxed text-slate-600">
+          <span className="font-semibold">Why it is novel: </span>
+          {hierarchy.invention?.why_novel}
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <HierarchyColumn label="Attack" tone="red" items={attack} />
+        <HierarchyColumn label="Defense" tone="green" items={defense} />
+      </div>
+
+      <div className="mt-4 rounded-xl border border-slate-200 p-4">
+        <div className="flex items-center gap-2">
+          <Badge tone="purple">Intelligence layer</Badge>
+          <span className="text-[11px] font-bold text-slate-700">
+            {hierarchy.intelligence_layer?.count} AI agents
+          </span>
+        </div>
+        <p className="mt-1.5 text-[11px] leading-relaxed text-slate-600">
+          {hierarchy.intelligence_layer?.rule}
+        </p>
+        <ol className="mt-2 space-y-1">
+          {(hierarchy.intelligence_layer?.lifecycle ?? []).map((step: string, i: number) => (
+            <li key={i} className="font-mono text-[10px] leading-relaxed text-slate-500">
+              {step}
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <p className="mt-4 rounded-lg bg-slate-900 px-4 py-2.5 text-center font-mono text-[11px] font-bold text-emerald-300">
+        {hierarchy.headline}
+      </p>
+    </Card>
+  );
+}
+
+function HierarchyColumn({
+  label,
+  tone,
+  items,
+}: {
+  label: string;
+  tone: 'red' | 'green';
+  items: any[];
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 p-3">
+      <Badge tone={tone}>{label}</Badge>
+      <div className="mt-2 space-y-2">
+        {items.map((c: any) => (
+          <div key={c.component} className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
+            <p className="text-[11px] font-bold text-slate-900">{c.component}</p>
+            <p className="mt-0.5 text-[10.5px] leading-snug text-slate-600">{c.role}</p>
+            <p className="mt-0.5 font-mono text-[9px] text-slate-400">{c.module}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

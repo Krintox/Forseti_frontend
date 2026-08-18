@@ -36,6 +36,36 @@ export interface AuthorityState {
   active_policy: string;
   permitted_mccs: string[];
   semantic_exclusions: string[];
+  permitted_rails: string[];
+  per_transaction_cap: number | null;
+  validity_window_hours: number;
+  economic_purpose: string;
+}
+
+/** One dimension of the delegated authority - the ceiling is only one row of this. */
+export interface AuthorityDimensionRow {
+  dimension: string;
+  invariant: string;
+  label: string;
+  granted?: any;
+  used?: number;
+  remaining?: number;
+  unconstrained?: boolean;
+  excluded?: string[];
+  granted_hours?: number;
+  expires_at?: string;
+  hours_remaining?: number;
+  expired?: boolean;
+}
+
+export type AuthorityVector = Record<'AMOUNT' | 'PER_TX' | 'RAIL' | 'MERCHANT' | 'PURPOSE' | 'TIME', AuthorityDimensionRow>;
+
+export interface InvariantRegistryRow {
+  code: string;
+  dimension: string;
+  question: string;
+  expression: string;
+  severity: string;
 }
 
 export interface DetectorStatus {
@@ -63,6 +93,8 @@ export interface PqcStatus {
 
 export interface ArenaState {
   authority_state: AuthorityState;
+  authority_vector: AuthorityVector;
+  invariant_registry: InvariantRegistryRow[];
   detector_status: DetectorStatus;
   pqc_status: PqcStatus;
   active_policy: string;
@@ -96,7 +128,8 @@ export interface RoundResult {
   authority_state: AuthorityState;
   pqc_audit: any;
   pqc_tamper_tests: any;
-  winner: 'RED' | 'BLUE';
+  winner: 'RED' | 'BLUE' | 'NONE';
+  outcome?: 'CONTAINED' | 'UNCHECKED_BREACH' | 'WITHIN_AUTHORITY';
   detected: boolean;
   next_red_plan: any;
   adaptation_history: any[];
@@ -140,6 +173,7 @@ export function isArtifactMissing(a: ArtifactEnvelope | null | undefined): boole
 
 /** Logical nodes the attack-flow canvas can animate between. */
 export const FLOW_NODES = [
+  'principal',
   'red_agent',
   'card_token',
   'upi_circle',

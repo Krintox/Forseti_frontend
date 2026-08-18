@@ -1,19 +1,37 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Pause, Play, RotateCcw, Wallet } from 'lucide-react';
+import { Pause, Play, RotateCcw, ShieldEllipsis, Wallet } from 'lucide-react';
 import { useArena } from '../lib/ArenaProvider';
-import { inr } from '../lib/api';
+import { api, inr } from '../lib/api';
 import { AnimatedNumber, Badge, Button } from './ui';
 
-const STRATEGIES = [
-  { key: 'CROSS_RAIL_SPLIT', round: 2, label: 'Cross-Rail Split', flagship: true },
-  { key: 'INTENT_LAUNDERING', round: 1, label: 'Intent Laundering' },
-  { key: 'BASELINE_POISONING', round: 3, label: 'Baseline Poisoning' },
-  { key: 'REVOCATION_FLOOD', round: 4, label: 'Revocation Flood' },
-  { key: 'VELOCITY_BURST', round: 5, label: 'Velocity Burst' },
-  { key: 'SCOPE_CREEP', round: 6, label: 'Scope Creep' },
+const RAIL_OPTIONS = [
+  { key: 'CARD_TOKEN', label: 'Card' },
+  { key: 'UPI_CIRCLE', label: 'UPI' },
+  { key: 'AGENTIC_AP2', label: 'Agentic' },
 ];
+
+const STRATEGIES = [
+  { key: 'CROSS_RAIL_SPLIT', round: 2, label: 'Cross-Rail Split', flagship: true, dimension: 'AMOUNT' },
+  { key: 'RAIL_SCOPE_VIOLATION', round: 7, label: 'Unauthorized Rail', dimension: 'RAIL' },
+  { key: 'PER_TX_BREACH', round: 8, label: 'Per-Tx Breach', dimension: 'PER_TX' },
+  { key: 'INTENT_LAUNDERING', round: 1, label: 'Intent Laundering', dimension: 'PURPOSE' },
+  { key: 'SCOPE_CREEP', round: 6, label: 'Scope Creep', dimension: 'MERCHANT' },
+  { key: 'LAPSED_MANDATE', round: 9, label: 'Lapsed Mandate', dimension: 'TIME' },
+  { key: 'BASELINE_POISONING', round: 3, label: 'Baseline Poisoning', dimension: 'AMOUNT' },
+  { key: 'REVOCATION_FLOOD', round: 4, label: 'Revocation Flood', dimension: 'TIME' },
+  { key: 'VELOCITY_BURST', round: 5, label: 'Velocity Burst', dimension: 'AMOUNT' },
+];
+
+const DIMENSION_TONE: Record<string, string> = {
+  AMOUNT: 'text-amber-600',
+  RAIL: 'text-purple-600',
+  PER_TX: 'text-blue-600',
+  PURPOSE: 'text-rose-600',
+  MERCHANT: 'text-emerald-600',
+  TIME: 'text-slate-600',
+};
 
 /**
  * Attack launcher plus the manual delegated-limit control.
@@ -22,7 +40,7 @@ const STRATEGIES = [
  * meter and every downstream page then reflect the new ceiling immediately.
  */
 export function ArenaControls() {
-  const { runRound, reset, setLimit, isRunning, ceiling, exposure, headroom, utilization, speed, setSpeed, state } =
+  const { runRound, reset, setLimit, isRunning, ceiling, exposure, headroom, utilization, speed, setSpeed, state, refreshState } =
     useArena();
   const [dtlEnabled, setDtlEnabled] = useState(true);
   // A campaign: any subset of vectors, run back to back against one grant.
@@ -31,10 +49,31 @@ export function ArenaControls() {
   const [campaignAt, setCampaignAt] = useState<number>(0);
   const [limitInput, setLimitInput] = useState<string>('10000');
   const [applying, setApplying] = useState(false);
+  const [selectedRails, setSelectedRails] = useState<string[]>(RAIL_OPTIONS.map((r) => r.key));
+  const [applyingScope, setApplyingScope] = useState(false);
 
   useEffect(() => {
     if (ceiling) setLimitInput(String(Math.round(ceiling)));
   }, [ceiling]);
+
+  useEffect(() => {
+    const permitted = state?.authority_state?.permitted_rails;
+    if (permitted && permitted.length) setSelectedRails(permitted);
+  }, [state?.authority_state?.permitted_rails]);
+
+  const toggleRail = (key: string) =>
+    setSelectedRails((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+
+  const applyRailScope = async () => {
+    if (selectedRails.length === 0) return;
+    setApplyingScope(true);
+    try {
+      await api.setAuthorityScope({ permitted_rails: selectedRails });
+      await refreshState();
+    } finally {
+      setApplyingScope(false);
+    }
+  };
 
   const toggle = (key: string) =>
     setSelectedKeys((prev) =>
@@ -142,6 +181,48 @@ export function ArenaControls() {
             </p>
           </div>
         </div>
+
+        {/* rail scope: the dimension a ceiling alone cannot express */}
+        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center gap-1.5">
+            <ShieldEllipsis className="h-3.5 w-3.5 text-purple-600" />
+            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
+              Permitted rails ("₹{Math.round(ceiling).toLocaleString('en-IN')}, UPI only" model)
+            </span>
+          </div>
+          <div className="mt-2 flex gap-1.5">
+            {RAIL_OPTIONS.map((r) => {
+              const on = selectedRails.includes(r.key);
+              return (
+                <button
+                  key={r.key}
+                  type="button"
+                  onClick={() => toggleRail(r.key)}
+                  className={`flex-1 rounded-md border px-2 py-1.5 text-[10px] font-bold uppercase transition-colors ${
+                    on
+                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              );
+            })}
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="mt-2 w-full"
+            disabled={applyingScope || selectedRails.length === 0}
+            onClick={applyRailScope}
+          >
+            {applyingScope ? 'Applying' : 'Apply rail scope'}
+          </Button>
+          <p className="mt-1.5 text-[9.5px] leading-relaxed text-slate-400">
+            The ceiling stays the same; only WHICH rails may spend it changes. A rail outside this
+            list is refused before a rupee of headroom is touched.
+          </p>
+        </div>
       </div>
 
       {/* attack launcher */}
@@ -190,14 +271,17 @@ export function ArenaControls() {
                 </span>
                 <span>
                   {s.label}
-                  {s.flagship && (
-                    <span className="mt-1 block text-[8px] font-bold text-rose-500">FLAGSHIP</span>
-                  )}
+                  <span className={`mt-1 block text-[8px] font-bold ${DIMENSION_TONE[s.dimension] ?? 'text-slate-500'}`}>
+                    {s.flagship ? 'FLAGSHIP · ' : ''}{s.dimension} DIM
+                  </span>
                 </span>
               </button>
             );
           })}
         </div>
+        <p className="mt-1.5 text-[9.5px] leading-relaxed text-slate-400">
+          Each vector targets one dimension of the delegated authority — amount is only one of six.
+        </p>
 
         <div className="mt-3 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
           <div>
