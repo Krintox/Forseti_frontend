@@ -37,7 +37,7 @@ export default function OverviewPage() {
     <>
       <PageHeader
         title="Executive Overview"
-        description="FORSETI enforces one invariant: a delegated agent may act only within the authority it was granted, across every payment rail at once."
+        description="FORSETI protects delegated authority, not a spend ceiling: a delegated agent may act only within the authority it was granted, across all six dimensions of the grant — amount, per-transaction size, rail, merchant, purpose and time."
       >
         <Link href="/arena">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-blue-700">
@@ -61,7 +61,8 @@ export default function OverviewPage() {
           <div className="rounded-xl border border-blue-300 bg-white p-4 shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-wide text-blue-700">FORSETI asks</p>
             <p className="mt-1.5 text-sm font-bold text-slate-900">
-              “Is this agent still acting within the authority it was given — across every rail?”
+              “Is this agent still acting within the authority it was given — amount, rail, merchant,
+              purpose and time, all at once?”
             </p>
           </div>
         </div>
@@ -104,6 +105,8 @@ export default function OverviewPage() {
           icon={<Lock className="h-3.5 w-3.5 text-slate-400" />}
         />
       </div>
+
+      <AuthorityDimensions />
 
       {headline && (
         <Card
@@ -228,5 +231,89 @@ function HealthRow({ label, ok, detail }: { label: string; ok: boolean; detail: 
       </span>
       <span className="font-mono text-[10px] text-slate-500">{detail}</span>
     </li>
+  );
+}
+
+/**
+ * The six dimensions of a delegation, rendered from the backend's own
+ * invariant registry (app/dtl/invariant_engine.py) and the live grant.
+ *
+ * This sits on the landing page because it is the whole concept: an agent that
+ * never touches the money limit can still act outside what a human authorised,
+ * and each dimension has its own machine-checkable invariant. Reading the
+ * registry rather than hardcoding six cards means this can never disagree with
+ * what the engine actually enforces.
+ */
+function AuthorityDimensions() {
+  const { state } = useArena();
+  const vector = state?.authority_vector;
+  const registry = state?.invariant_registry ?? [];
+  if (!vector || registry.length === 0) return null;
+
+  const ORDER = ['AMOUNT', 'PER_TX', 'RAIL', 'MERCHANT', 'PURPOSE', 'TIME'] as const;
+  const LABEL: Record<string, string> = {
+    AMOUNT: 'Amount',
+    PER_TX: 'Per-transaction',
+    RAIL: 'Rail',
+    MERCHANT: 'Merchant',
+    PURPOSE: 'Purpose',
+    TIME: 'Time',
+  };
+
+  const describe = (key: string): string => {
+    const row: any = (vector as any)[key];
+    if (!row) return '—';
+    if (key === 'AMOUNT') return inr(row.granted);
+    if (key === 'PER_TX') return row.granted == null ? 'unconstrained' : inr(row.granted);
+    if (key === 'RAIL') {
+      const rails: string[] = row.granted ?? [];
+      return rails.length >= 3 ? 'any rail' : rails.map((r) => r.split('_')[0]).join(' · ') || 'none';
+    }
+    if (key === 'MERCHANT') return `MCC ${(row.granted ?? []).join(', ')}`;
+    if (key === 'PURPOSE') return String(row.granted ?? '—');
+    if (key === 'TIME') return row.expired ? 'EXPIRED' : `${row.granted_hours}h window`;
+    return '—';
+  };
+
+  return (
+    <Card
+      title="What the user actually delegated"
+      subtitle="Authority is multidimensional — the money limit is one row of six, and each has its own invariant"
+      right={<Badge tone="blue">live grant</Badge>}
+    >
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {ORDER.map((key) => {
+          const row: any = (vector as any)[key];
+          const inv = registry.find((r) => r.dimension === key);
+          const expired = key === 'TIME' && row?.expired;
+          return (
+            <div
+              key={key}
+              className={`rounded-xl border px-3 py-2.5 ${
+                expired ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-white'
+              }`}
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
+                  {LABEL[key]}
+                </p>
+                <p className="font-mono text-[9px] text-slate-400">{inv?.code.split('_')[0]}_{inv?.code.split('_')[1]}</p>
+              </div>
+              <p className={`mt-0.5 truncate font-mono text-[12px] font-bold ${expired ? 'text-rose-600' : 'text-slate-900'}`}>
+                {describe(key)}
+              </p>
+              <p className="mt-1 text-[10px] leading-snug text-slate-500">{inv?.question}</p>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3">
+        <InfoNote>
+          An agent can stay inside the amount and still break the grant — wrong rail, wrong
+          merchant, wrong basket, or after the mandate lapsed. Each row is enforced
+          deterministically, so none of them depends on having seen the attack before.
+        </InfoNote>
+      </div>
+    </Card>
   );
 }

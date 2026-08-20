@@ -24,14 +24,20 @@ export function Card({
       className={`rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50 ${className}`}
     >
       {(title || right) && (
-        <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-3.5">
-          <div className="min-w-0">
+        <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1.5 border-b border-slate-100 px-5 py-3.5">
+          {/* `grow` (not `flex-1`) deliberately keeps flex-basis:auto. flex-1 sets
+              flex-basis:0%, which makes the browser's line-wrap decision ignore
+              this block's real content width entirely - it only ever sees the
+              `right` block's width against the container, so the header never
+              wraps and this title collapses to a few px with its text
+              overflowing on top of `right` instead of dropping to a new line. */}
+          <div className="min-w-0 grow">
             {title && (
               <h2 className="text-[13px] font-bold uppercase tracking-wide text-slate-800">{title}</h2>
             )}
             {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
           </div>
-          {right && <div className="shrink-0">{right}</div>}
+          {right && <div className="max-w-full shrink-0">{right}</div>}
         </header>
       )}
       <div className="p-5">{children}</div>
@@ -162,11 +168,14 @@ export function Provenance({ artifact }: { artifact: ArtifactEnvelope | null }) 
     artifact.experiment_id ?? artifact.metadata?.experiment_id ?? artifact.benchmark_id ?? '—';
   const seed = artifact.seed ?? artifact.metadata?.seed ?? artifact.environment?.seed ?? '—';
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-slate-500">
-      <span>experiment: {String(expId)}</span>
-      <span>seed: {String(seed)}</span>
-      {meta && <span>generated: {new Date(meta.generated_at).toLocaleString()}</span>}
-      {meta && <span>source: {meta.path}</span>}
+    <div className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-slate-500">
+      <span className="break-words">experiment: {String(expId)}</span>
+      <span className="break-words">seed: {String(seed)}</span>
+      {meta && <span className="break-words">generated: {new Date(meta.generated_at).toLocaleString()}</span>}
+      {/* Windows paths (backslash-separated) have no natural line-break point and
+          previously forced this whole card header to blow out and overlap the
+          title at laptop-width viewports. break-all lets it wrap mid-path. */}
+      {meta && <span className="break-all">source: {meta.path}</span>}
     </div>
   );
 }

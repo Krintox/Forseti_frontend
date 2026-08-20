@@ -56,8 +56,23 @@ export default function DelegationLedgerPage() {
             </div>
           </Card>
 
-          <Card title="Delegation scope" subtitle="What this authority permits">
+          <Card title="Delegation scope" subtitle="What this authority permits, across every dimension">
             <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                  Permitted rails
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {(auth?.permitted_rails ?? []).map((rail) => (
+                    <span key={rail} className="rounded-md bg-purple-50 px-2 py-0.5 font-mono text-[10px] font-bold text-purple-700">
+                      {String(rail).replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                  {(auth?.permitted_rails ?? []).length === 0 && (
+                    <span className="text-[11px] text-slate-400">none — every rail refused</span>
+                  )}
+                </div>
+              </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                   Permitted merchant categories
@@ -82,12 +97,28 @@ export default function DelegationLedgerPage() {
                   ))}
                 </div>
               </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                  Economic purpose
+                </p>
+                <p className="mt-1.5 text-[11px] italic text-slate-600">
+                  {auth?.economic_purpose || '—'}
+                </p>
+              </div>
             </div>
             <dl className="mt-4 space-y-1.5 text-xs">
               <Row label="Authority ID" value={auth?.authority_id} />
               <Row label="Principal" value={auth?.principal} />
               <Row label="Agent" value={auth?.agent_id} />
               <Row label="Active policy" value={auth?.active_policy} />
+              <Row
+                label="Per-transaction cap"
+                value={auth?.per_transaction_cap != null ? inr(auth.per_transaction_cap) : 'unconstrained'}
+              />
+              <Row
+                label="Validity window"
+                value={auth?.validity_window_hours != null ? `${auth.validity_window_hours}h` : '—'}
+              />
             </dl>
           </Card>
 

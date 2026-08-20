@@ -8,12 +8,12 @@ import { api, inr } from '../lib/api';
 
 const POLICIES = [
   { id: 'STANDARD', desc: 'Baseline. Per-rail checks only, no global aggregation.' },
-  { id: 'STRICT_INVARIANT', desc: 'Global cross-rail authority checking is enforced on every transaction.' },
+  { id: 'STRICT_INVARIANT', desc: 'All six authority-dimension invariants (amount, per-transaction, rail, merchant, purpose, time) are enforced on every transaction.' },
   { id: 'ADAPTIVE_CONTAINMENT', desc: 'Partial authorisation and shadow execution are active.' },
   { id: 'CAPABILITY_QUARANTINED', desc: 'Agent spending capability has been downgraded after a violation.' },
   { id: 'TIGHTENED_HEADROOM_V2', desc: 'Headroom buffer reduced after a budget-ceiling breach.' },
   { id: 'STRICT_CATALOG_ATTESTATION', desc: 'Item-level attestation required after semantic drift.' },
-  { id: 'STEP_UP_VERIFICATION', desc: 'Secondary verification required before authorisation.' },
+  { id: 'STEP_UP_VERIFICATION', desc: 'Secondary verification required before authorisation — used for per-transaction cap breaches and lapsed mandates.' },
 ];
 
 export default function PolicyCenterPage() {
@@ -67,6 +67,9 @@ export default function PolicyCenterPage() {
             <dl className="space-y-1.5 text-xs">
               <Row label="Delegated ceiling" value={inr(ceiling)} />
               <Row label="Remaining headroom" value={inr(headroom)} />
+              <Row label="Per-transaction cap" value={auth?.per_transaction_cap != null ? inr(auth.per_transaction_cap) : 'unconstrained'} />
+              <Row label="Permitted rails" value={(auth?.permitted_rails ?? []).join(', ')} />
+              <Row label="Validity window" value={auth?.validity_window_hours != null ? `${auth.validity_window_hours}h` : undefined} />
               <Row label="Authority ID" value={auth?.authority_id} />
               <Row label="Principal" value={auth?.principal} />
               <Row label="Agent" value={auth?.agent_id} />

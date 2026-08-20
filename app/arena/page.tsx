@@ -9,6 +9,7 @@ import { ArenaControls } from '../components/ArenaControls';
 import { EventLog } from '../components/EventLog';
 import { EventInspector } from '../components/EventInspector';
 import { NodeInspector } from '../components/NodeInspector';
+import { VerdictBanner } from '../components/VerdictBanner';
 import { Badge, Card, InfoNote, PageHeader } from '../components/ui';
 import { useArena } from '../lib/ArenaProvider';
 import { inr } from '../lib/api';
@@ -33,6 +34,7 @@ function ArenaView() {
 
   const violation = [...events].reverse().find((e) => e.event_type === 'INVARIANT_VIOLATION');
   const containment = [...events].reverse().find((e) => e.event_type === 'POLICY_DECISION');
+  const approvedRails = events.filter((e) => e.event_type === 'RAIL_APPROVED');
   const mlEvents = events.filter((e) => e.event_type === 'ML_SCORE');
   const lastMl = mlEvents.length ? mlEvents[mlEvents.length - 1] : null;
 
@@ -65,6 +67,8 @@ function ArenaView() {
         </div>
       )}
 
+      <VerdictBanner />
+
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[280px_minmax(0,1fr)_340px]">
         <div className="order-2 xl:order-1">
           <ArenaControls />
@@ -75,14 +79,33 @@ function ArenaView() {
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <Card title="Why each rail said yes" subtitle="The fragmentation the attack exploits">
+              {/* Described from the round that actually ran. This copy used to
+                  be hardcoded to the cross-rail split ("three legs of ₹4,000"),
+                  so it contradicted the rail list directly beneath it for every
+                  other vector. */}
               <p className="text-xs leading-relaxed text-slate-600">
-                Each adapter enforces only its own limit. Three legs of{' '}
-                <strong>{inr(4000)}</strong> are individually ordinary. The violation exists only in
-                the aggregate — which is precisely what no single rail can see.
+                Each adapter enforces only its own limit.{' '}
+                {approvedRails.length > 0 ? (
+                  <>
+                    {approvedRails.length === 1 ? 'This leg of ' : `${approvedRails.length} legs of `}
+                    <strong>
+                      {Array.from(new Set(approvedRails.map((e) => Number(e.payload?.amount ?? 0))))
+                        .map((a) => inr(a))
+                        .join(' + ')}
+                    </strong>{' '}
+                    {approvedRails.length === 1 ? 'is' : 'are'} individually ordinary — every rail
+                    below said yes. Whether that is allowed depends on the grant, which only the DTL
+                    holds.
+                  </>
+                ) : (
+                  <>
+                    A rail sees one transaction against its own ceiling. It cannot see the other
+                    rails, and it never sees the non-monetary terms of the delegation.
+                  </>
+                )}
               </p>
               <div className="mt-3 space-y-2">
-                {events
-                  .filter((e) => e.event_type === 'RAIL_APPROVED')
+                {approvedRails
                   .slice(-4)
                   .map((e) => (
                     <div
@@ -97,7 +120,7 @@ function ArenaView() {
                       </span>
                     </div>
                   ))}
-                {events.filter((e) => e.event_type === 'RAIL_APPROVED').length === 0 && (
+                {approvedRails.length === 0 && (
                   <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-[11px] text-slate-400">
                     No rail authorizations yet.
                   </p>

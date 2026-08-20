@@ -21,15 +21,24 @@ export default function ThreatIntelPage() {
     return { bySeverity, byAgentic };
   }, [vectors]);
 
-  const agenticVectors = vectors.filter((v) => v.agentic_relevance === 'HIGH');
-  const maxChannel = Math.max(1, ...Object.values(summary?.count_by_channel ?? { a: 1 }));
-  const maxSurface = Math.max(1, ...Object.values(summary?.count_by_surface ?? { a: 1 }));
+  // Executable vectors sort first: without this, a fixed slice(0, 12) below
+  // silently drops any implemented vector whose taxonomy id happens to land
+  // past position 12 - which is exactly what happened when the three
+  // authority-dimension vectors (#53-55) shipped at the end of the table and
+  // vanished from this list despite being both HIGH relevance and executable.
+  const agenticVectors = vectors
+    .filter((v) => v.agentic_relevance === 'HIGH')
+    .sort((a, b) => Number(b.implemented) - Number(a.implemented) || a.id - b.id);
+  const maxChannel = Math.max(1, ...(Object.values(summary?.count_by_channel ?? {}) as number[]));
+  const maxSurface = Math.max(1, ...(Object.values(summary?.count_by_surface ?? {}) as number[]));
 
   return (
     <>
       <PageHeader
         title="Threat Intelligence"
-        description="Coverage map of the researched attack surface. Every vector carries a real-world citation; the six executable ones are marked separately so research breadth is never confused with implemented depth."
+        description={`Coverage map of the researched attack surface. Every vector carries a real-world citation; the ${
+          summary?.implemented_count ?? 'nine'
+        } executable ones are marked separately so research breadth is never confused with implemented depth.`}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

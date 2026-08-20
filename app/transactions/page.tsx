@@ -79,7 +79,7 @@ export default function TransactionMonitorPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Transactions" value={rows.length} hint="this session" />
         <Stat label="Approved by rail" value={approvedLocally} tone="warning" hint="each looked legitimate locally" />
-        <Stat label="Contained by DTL" value={containedGlobally} tone="success" hint="global authority violation" />
+        <Stat label="Contained by DTL" value={containedGlobally} tone="success" hint="any authority dimension" />
         <Stat label="Total value attempted" value={inr(totalValue)} />
       </div>
 
