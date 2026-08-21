@@ -3,7 +3,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import { AlertOctagon, Link2, ShieldAlert, ShieldCheck, Waypoints } from 'lucide-react';
 import { AttackFlowCanvas } from '../components/AttackFlowCanvas';
 import { ArenaControls } from '../components/ArenaControls';
 import { EventLog } from '../components/EventLog';
@@ -17,6 +17,11 @@ import { inr } from '../lib/api';
 function ArenaView() {
   const { events, winner, lastRound, strategy, currentStep, totalSteps, exposure, ceiling, runRound, isRunning, lastError } =
     useArena();
+  const firewallVerdicts = lastRound?.firewall_verdicts ?? [];
+  const lastFirewall = firewallVerdicts.length ? firewallVerdicts[firewallVerdicts.length - 1] : null;
+  const deceptionVerdicts = lastRound?.deception_verdicts ?? [];
+  const deceptionDetections = deceptionVerdicts.filter((v) => v.verdict === 'DECEPTION_DETECTED');
+  const killChain = lastRound?.kill_chain ?? null;
   const [inspected, setInspected] = useState<any>(null);
   const [inspectedNode, setInspectedNode] = useState<string | null>(null);
   const params = useSearchParams();
@@ -209,6 +214,112 @@ function ArenaView() {
               )}
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <Card title="Intent Firewall" subtitle="Drift vector, reshaped from the DTL's own proofs">
+              {lastFirewall ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Waypoints
+                      className={`h-4 w-4 ${
+                        lastFirewall.verdict === 'HARD_DRIFT'
+                          ? 'text-rose-600'
+                          : lastFirewall.verdict === 'PARTIAL_DRIFT'
+                            ? 'text-amber-600'
+                            : 'text-emerald-600'
+                      }`}
+                    />
+                    <span
+                      className={`text-[12px] font-black ${
+                        lastFirewall.verdict === 'HARD_DRIFT'
+                          ? 'text-rose-700'
+                          : lastFirewall.verdict === 'PARTIAL_DRIFT'
+                            ? 'text-amber-700'
+                            : 'text-emerald-700'
+                      }`}
+                    >
+                      {lastFirewall.verdict}
+                    </span>
+                    <span className="font-mono text-[10px] text-slate-400">
+                      score {lastFirewall.overall_drift_score.toFixed(3)}
+                    </span>
+                  </div>
+                  {lastFirewall.violating_dimensions.length > 0 ? (
+                    <p className="mt-2 text-[11px] leading-relaxed text-slate-700">
+                      Drifted on{' '}
+                      <strong>{lastFirewall.violating_dimensions.join(', ').replace(/_/g, ' ')}</strong>
+                      {' '}— every other dimension stayed inside the grant.
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-[11px] text-slate-500">
+                      Nothing drifted on any dimension this step.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-slate-400">No transaction evaluated yet.</p>
+              )}
+            </Card>
+
+            <Card title="Deception Lab" subtitle="Attacks on the agent's own reasoning">
+              {deceptionVerdicts.length > 0 ? (
+                deceptionDetections.length > 0 ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <AlertOctagon className="h-4 w-4 text-rose-600" />
+                      <span className="text-[12px] font-black text-rose-700">
+                        {deceptionDetections.length} DETECTION{deceptionDetections.length > 1 ? 'S' : ''}
+                      </span>
+                    </div>
+                    {deceptionDetections.flatMap((v) => v.detections).slice(0, 2).map((d, i) => (
+                      <p key={i} className="mt-2 text-[11px] leading-relaxed text-slate-700">
+                        <strong>{d.type.replace(/_/g, ' ')}</strong>: {d.explanation}
+                      </p>
+                    ))}
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                    Clean — the agent was not fed a false premise this round.
+                  </div>
+                )
+              ) : (
+                <p className="text-xs text-slate-400">No transaction evaluated yet.</p>
+              )}
+            </Card>
+
+            <Card title="Kill Chain" subtitle="Where this strategy lands in the attack lifecycle">
+              {killChain ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Link2 className="h-4 w-4 text-blue-600" />
+                    <span className="text-[12px] font-black text-slate-900">
+                      {killChain.stage?.label ?? 'Unmapped stage'}
+                    </span>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <Field
+                      label="Detection latency"
+                      value={
+                        killChain.time_to_detection_ms != null
+                          ? `${killChain.time_to_detection_ms.toFixed(0)}ms`
+                          : '—'
+                      }
+                    />
+                    <Field label="Chain score" value={killChain.attack_chain_score.toFixed(2)} />
+                    <Field
+                      label="Exposure prevented"
+                      value={inr(killChain.economic_exposure_prevented_inr)}
+                      tone={killChain.economic_exposure_prevented_inr > 0 ? 'success' : 'default'}
+                    />
+                    <Field label="Blast radius" value={killChain.blast_radius_score.toFixed(2)} />
+                  </dl>
+                </>
+              ) : (
+                <p className="text-xs text-slate-400">No round scored yet.</p>
+              )}
+            </Card>
+          </div>
         </div>
 
         <div className="order-3 xl:sticky xl:top-6 xl:h-[calc(100vh-7rem)]">
@@ -229,18 +340,14 @@ function Field({
 }: {
   label: string;
   value: React.ReactNode;
-  tone?: 'default' | 'danger';
+  tone?: 'default' | 'danger' | 'success';
 }) {
+  const toneClass =
+    tone === 'danger' ? 'text-rose-600' : tone === 'success' ? 'text-emerald-600' : 'text-slate-900';
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5">
       <dt className="text-[9px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
-      <dd
-        className={`mt-0.5 font-mono text-[12px] font-bold ${
-          tone === 'danger' ? 'text-rose-600' : 'text-slate-900'
-        }`}
-      >
-        {value}
-      </dd>
+      <dd className={`mt-0.5 font-mono text-[12px] font-bold ${toneClass}`}>{value}</dd>
     </div>
   );
 }

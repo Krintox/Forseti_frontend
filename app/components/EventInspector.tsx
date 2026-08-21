@@ -209,6 +209,20 @@ function EventNumbers({ event }: { event: ArenaEvent }) {
   if (p.backend) add('Backend', String(p.backend));
   if (typeof p.signature_bytes === 'number') add('Signature', `${p.signature_bytes} bytes`);
 
+  // Intent Firewall (drift vector)
+  if (typeof p.overall_drift_score === 'number') add('Drift score', p.overall_drift_score.toFixed(3));
+  if (Array.isArray(p.violating_dimensions) && p.violating_dimensions.length) {
+    add('Drifted dimensions', p.violating_dimensions.join(', '));
+  }
+  // Deception Lab
+  if (Array.isArray(p.detections) && p.detections.length) {
+    add('Deception type(s)', p.detections.map((d: any) => d.type).join(', '));
+  }
+  // Blue escalation ladder
+  if (typeof p.violation_count === 'number') add('Repeat count', String(p.violation_count));
+  if (typeof p.escalated === 'boolean') add('Escalated', p.escalated ? 'yes' : 'no');
+  if (p.active_policy) add('Active policy', String(p.active_policy).replace(/_/g, ' '));
+
   if (!rows.length) return null;
 
   return (

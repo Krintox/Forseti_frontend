@@ -191,6 +191,24 @@ export default function DetectionLabPage() {
               </tbody>
             </table>
           </div>
+
+          {(ablation?.measured_dtl_feature_lift || ablation?.measured_graph_feature_lift) && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {ablation?.measured_dtl_feature_lift && (
+                <LiftCallout
+                  label="Measured DTL feature lift"
+                  lift={ablation.measured_dtl_feature_lift}
+                />
+              )}
+              {ablation?.measured_graph_feature_lift && (
+                <LiftCallout
+                  label="Measured graph feature lift"
+                  lift={ablation.measured_graph_feature_lift}
+                />
+              )}
+            </div>
+          )}
+
           <div className="mt-4">
             <img
               src={`${API_BASE.replace(/\/$/, '')}/../artifacts/evaluation/ablation_pr_auc.png`}
@@ -207,6 +225,22 @@ export default function DetectionLabPage() {
         </Card>
       )}
     </>
+  );
+}
+
+function LiftCallout({ label, lift }: { label: string; lift: any }) {
+  const positive = (lift.lift ?? 0) >= 0;
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-[9.5px] font-bold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className={`mt-1 font-mono text-lg font-black tabular-nums ${positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+        {positive ? '+' : ''}{num(lift.lift, 4)} PR-AUC
+        <span className="ml-2 text-xs font-semibold text-slate-500">
+          ({positive ? '+' : ''}{num(lift.relative_lift_pct, 2)}%)
+        </span>
+      </p>
+      <p className="mt-1 text-[10px] text-slate-500">{lift.definition}</p>
+    </div>
   );
 }
 

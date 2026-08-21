@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Pause, Play, RotateCcw, ShieldEllipsis, Wallet } from 'lucide-react';
+import { Pause, Play, RotateCcw, ShieldEllipsis, Siren, Wallet } from 'lucide-react';
 import { useArena } from '../lib/ArenaProvider';
+import type { CampaignResult } from '../lib/types';
 import { api, inr } from '../lib/api';
 import { AnimatedNumber, Badge, Button } from './ui';
 
@@ -40,8 +41,23 @@ const DIMENSION_TONE: Record<string, string> = {
  * meter and every downstream page then reflect the new ceiling immediately.
  */
 export function ArenaControls() {
-  const { runRound, reset, setLimit, isRunning, ceiling, exposure, headroom, utilization, speed, setSpeed, state, refreshState } =
-    useArena();
+  const {
+    runRound, runBackendCampaign, reset, setLimit, isRunning, ceiling, exposure, headroom,
+    utilization, speed, setSpeed, state, refreshState,
+  } = useArena();
+  const [escalationResult, setEscalationResult] = useState<CampaignResult | null>(null);
+  const [escalationBusy, setEscalationBusy] = useState(false);
+
+  const runEscalationDemo = async () => {
+    setEscalationBusy(true);
+    setEscalationResult(null);
+    try {
+      const result = await runBackendCampaign([7, 7, 7]);
+      setEscalationResult(result);
+    } finally {
+      setEscalationBusy(false);
+    }
+  };
   const [dtlEnabled, setDtlEnabled] = useState(true);
   // A campaign: any subset of vectors, run back to back against one grant.
   // Selecting several is how you show the Red agent adapting between rounds.
@@ -343,6 +359,43 @@ export function ArenaControls() {
             <RotateCcw className="h-3.5 w-3.5" />
             Reset
           </Button>
+        </div>
+
+        {/* Adaptive Immune System: the same invariant hit repeatedly escalates
+            through soft response -> capability quarantine -> mandate
+            suspension. The multi-vector campaign above runs each strategy
+            ONCE; this specifically repeats one to show the ladder. */}
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <div className="flex items-center gap-1.5">
+            <Siren className="h-3.5 w-3.5 text-amber-700" />
+            <span className="text-[10px] font-bold uppercase tracking-wide text-amber-800">
+              Escalation demo
+            </span>
+          </div>
+          <p className="mt-1 text-[9.5px] leading-relaxed text-amber-800">
+            Runs Unauthorized Rail three times back to back on the live grant. Watch the policy
+            escalate: step-up → capability quarantine → mandate suspension.
+          </p>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="mt-2 w-full border-amber-300 text-amber-800 hover:bg-amber-100"
+            disabled={escalationBusy || isRunning}
+            onClick={runEscalationDemo}
+          >
+            {escalationBusy ? 'Running 3 rounds…' : 'Run escalation demo (×3)'}
+          </Button>
+          {escalationResult && (
+            <div className="mt-2 rounded-lg border border-amber-300 bg-white px-2.5 py-2">
+              <p className="text-[10px] font-bold text-slate-700">
+                Final policy: <span className="font-mono text-amber-700">{escalationResult.final_active_policy}</span>
+              </p>
+              <p className="mt-0.5 text-[9.5px] text-slate-500">
+                {escalationResult.kill_chain_coverage.stages_contained} of{' '}
+                {escalationResult.kill_chain_coverage.stages_reached} stages reached were contained
+              </p>
+            </div>
+          )}
         </div>
 
         {state?.detector_status && !state.detector_status.model_loaded && (

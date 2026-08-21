@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { API_BASE, WS_URL, api } from './api';
-import type { ArenaEvent, ArenaState, RoundResult } from './types';
+import type { ArenaEvent, ArenaState, CampaignResult, RoundResult } from './types';
 
 /**
  * Single shared connection to the backend event stream.
@@ -41,6 +41,7 @@ interface ArenaContextValue {
   setSpeed: (s: number) => void;
   refreshState: () => Promise<void>;
   runRound: (round: number, dtlEnabled: boolean, strategy?: string | null) => Promise<void>;
+  runBackendCampaign: (roundNumbers?: number[] | null) => Promise<CampaignResult | null>;
   reset: (limit?: number) => Promise<void>;
   setLimit: (limit: number) => Promise<void>;
   lastError: string | null;
@@ -251,6 +252,32 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     [speed, refreshState],
   );
 
+  // Runs a server-orchestrated sequence of rounds in ONE call - the way to
+  // demonstrate the Blue escalation ladder (Module 5), which needs the SAME
+  // invariant to fire multiple times this session. The multi-vector campaign
+  // in ArenaControls loops runRound() client-side over DIFFERENT strategies;
+  // this is the complementary case (same strategy, repeated), and every
+  // event still streams over the same WebSocket in real time either way.
+  const runBackendCampaign = useCallback(
+    async (roundNumbers?: number[] | null) => {
+      setIsRunning(true);
+      setManualCeiling(null);
+      setLastError(null);
+      try {
+        const result = await api.runCampaign({ round_numbers: roundNumbers ?? null, dtl_enabled: true, speed });
+        if (result.rounds.length) setLastRound(result.rounds[result.rounds.length - 1]);
+        await refreshState();
+        return result;
+      } catch (e: any) {
+        setLastError(`Campaign request failed: ${e?.message ?? e}`);
+        return null;
+      } finally {
+        setIsRunning(false);
+      }
+    },
+    [speed, refreshState],
+  );
+
   const reset = useCallback(
     async (limit?: number) => {
       try {
@@ -294,6 +321,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     lastError,
     refreshState,
     runRound,
+    runBackendCampaign,
     reset,
     setLimit,
     clearEvents,

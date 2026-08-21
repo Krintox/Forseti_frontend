@@ -58,7 +58,10 @@ export interface AuthorityDimensionRow {
   expired?: boolean;
 }
 
-export type AuthorityVector = Record<'AMOUNT' | 'PER_TX' | 'RAIL' | 'MERCHANT' | 'PURPOSE' | 'TIME', AuthorityDimensionRow>;
+export type AuthorityVector = Record<
+  'AMOUNT' | 'PER_TX' | 'RAIL' | 'MERCHANT' | 'PURPOSE' | 'TIME' | 'BENEFICIARY',
+  AuthorityDimensionRow
+>;
 
 export interface InvariantRegistryRow {
   code: string;
@@ -119,12 +122,89 @@ export interface StepResult {
   headroom_after: number;
 }
 
+/** Agent Intent Firewall: reshapes the DTL's own proofs into a per-dimension drift vector. */
+export interface FirewallVerdict {
+  tx_id: string;
+  overall_drift_score: number;
+  drift_breakdown: Record<string, number>;
+  violating_dimensions: string[];
+  invariant_codes: string[];
+  verdict: 'ALLOW' | 'PARTIAL_DRIFT' | 'HARD_DRIFT';
+}
+
+/** Deception Lab: attacks on the agent's own reasoning, orthogonal to authority enforcement. */
+export interface DeceptionDetection {
+  type: string;
+  severity: string;
+  deceptive_input: string;
+  ground_truth_check: string;
+  explanation: string;
+  proof_id: string;
+}
+
+export interface DeceptionVerdict {
+  tx_id: string;
+  verdict: 'CLEAN' | 'DECEPTION_DETECTED';
+  detections: DeceptionDetection[];
+  count: number;
+}
+
+/** Agentic Payment Kill Chain: which lifecycle stage a strategy lands on, and its score. */
+export interface KillChainStage {
+  index: number;
+  code: string;
+  label: string;
+  description: string;
+}
+
+export interface KillChainScore {
+  strategy: string;
+  stage: KillChainStage | null;
+  detected: boolean;
+  contained: boolean;
+  time_to_detection_ms: number | null;
+  economic_exposure_prevented_inr: number;
+  blast_radius_score: number;
+  attack_chain_score: number;
+  rails_touched: string[];
+}
+
+export interface KillChainCoverage {
+  total_stages: number;
+  stages_reached: number;
+  stages_contained: number;
+  coverage_pct: number;
+  containment_pct_of_reached: number;
+  by_stage: { code: string; label: string; attempts: number; contained: number }[];
+  unmapped_rounds: number;
+}
+
+/** Unified Risk Engine: a composite synthesis of signals other modules already computed, not a new detector. */
+export interface UnifiedRisk {
+  overall_risk_score: number;
+  confidence: number;
+  risk_components: {
+    dtl_invariant_risk: number;
+    intent_firewall_risk: number;
+    deception_lab_risk: number;
+    ml_anomaly_risk: number;
+    kill_chain_risk: number;
+  };
+  deterministic_override: boolean;
+  weighting: string;
+  note: string;
+}
+
 export interface RoundResult {
   round_number: number;
   strategy: string;
   dtl_enabled: boolean;
   experiment_id: string;
   step_results: StepResult[];
+  firewall_verdicts?: FirewallVerdict[];
+  deception_verdicts?: DeceptionVerdict[];
+  kill_chain?: KillChainScore;
+  risk?: UnifiedRisk;
   authority_state: AuthorityState;
   pqc_audit: any;
   pqc_tamper_tests: any;
@@ -134,6 +214,13 @@ export interface RoundResult {
   next_red_plan: any;
   adaptation_history: any[];
   events: ArenaEvent[];
+}
+
+export interface CampaignResult {
+  round_numbers: number[];
+  rounds: RoundResult[];
+  kill_chain_coverage: KillChainCoverage;
+  final_active_policy: string;
 }
 
 export interface AttackVector {

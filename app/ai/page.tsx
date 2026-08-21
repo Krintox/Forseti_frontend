@@ -131,6 +131,14 @@ function AgentCard({
             </p>
           )}
           {result.result && <ResultBody agent={result.agent} data={result.result} extra={result} />}
+          {/* The incident report's deterministic_appendix is attached to the
+              envelope UNCONDITIONALLY (see backend/app/ai/agents.py) so its
+              facts survive even when no LLM answered - but ResultBody only
+              renders when result.result is truthy, which hides it exactly in
+              that case unless it's also rendered here as a fallback. */}
+          {!result.result && result.deterministic_appendix && (
+            <DeterministicAppendixBlock data={result.deterministic_appendix} />
+          )}
           <p className="font-mono text-[9.5px] text-slate-400">
             {result.llm
               ? `${result.llm.provider} / ${result.llm.model} · ${result.llm.latency_ms}ms${result.llm.cached ? ' · cached' : ''}`
@@ -140,6 +148,31 @@ function AgentCard({
         </div>
       )}
     </Card>
+  );
+}
+
+/** Incident report facts sourced directly from the round result, never the model - present even when LLM_UNAVAILABLE. */
+function DeterministicAppendixBlock({ data }: { data: any }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <p className="text-[9.5px] font-bold uppercase text-slate-500">
+        Cross-module facts (not from the model)
+      </p>
+      <dl className="mt-1 space-y-0.5">
+        <KV k="Kill-chain stage" v={data.kill_chain_stage ?? '—'} />
+        <KV k="Attack chain score" v={num(data.attack_chain_score, 2)} />
+        <KV
+          k="Intent Firewall hard-drift"
+          v={`${data.intent_firewall_hard_drift_count} (${
+            data.intent_firewall_violating_dimensions.join(', ') || 'none'
+          })`}
+        />
+        <KV
+          k="Deception Lab detections"
+          v={`${data.deception_lab_detection_count} (${data.deception_lab_types.join(', ') || 'none'})`}
+        />
+      </dl>
+    </div>
   );
 }
 
@@ -249,13 +282,17 @@ function ResultBody({ agent, data, extra }: { agent: string; data: any; extra?: 
         <table className="mt-2 w-full text-[11px]">
           <thead>
             <tr className="text-left text-[9.5px] uppercase text-slate-500">
-              <th className="pb-1">Ceiling tested</th><th className="pb-1">Outcome</th><th className="pb-1">Final exposure</th>
+              <th className="pb-1">Dimension</th><th className="pb-1">Parameter tested</th>
+              <th className="pb-1">Outcome</th><th className="pb-1">Final exposure</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {(extra?.simulated_outcomes ?? []).map((r: any, i: number) => (
               <tr key={i}>
-                <td className="py-1 font-mono">{inr(r.ceiling_inr)}</td>
+                <td className="py-1 font-mono text-slate-500">{r.dimension}</td>
+                <td className="py-1">
+                  {r.dimension === 'AMOUNT' ? inr(r.ceiling_inr) : r.parameter_summary}
+                </td>
                 <td className={`py-1 font-bold ${r.contained ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {r.contained ? 'CONTAINED' : 'BREACHED'}
                 </td>
@@ -289,6 +326,7 @@ function ResultBody({ agent, data, extra }: { agent: string; data: any; extra?: 
           </ul>
         </div>
         <p className="text-[10px] italic text-slate-500">{data.evidence_integrity}</p>
+        {extra?.deterministic_appendix && <DeterministicAppendixBlock data={extra.deterministic_appendix} />}
       </div>
     );
   }

@@ -29,7 +29,13 @@ const DIMENSION_COPY: Record<string, { label: string; because: string }> = {
 };
 
 export function VerdictBanner() {
-  const { events } = useArena();
+  const { events, lastRound } = useArena();
+  // Unified Risk Engine: a composite synthesis of signals other modules
+  // already computed for this round, not a new detector - see
+  // backend/app/risk_engine/risk.py. Round-level, not event-level, so it
+  // comes from lastRound (set the same moment the round's final events
+  // arrive) rather than being derivable from the event stream itself.
+  const risk = lastRound?.risk;
 
   const verdict = useMemo(() => {
     const complete = [...events].reverse().find((e) => e.event_type === 'ATTACK_COMPLETE');
@@ -173,6 +179,14 @@ export function VerdictBanner() {
               verdict={maxMl === null ? '—' : maxMl >= 0.5 ? 'FLAGGED' : 'LOOKS ORDINARY'}
               ok={maxMl !== null && maxMl >= 0.5}
             />
+            {risk && (
+              <Fact
+                label="Unified risk"
+                value={`${(risk.overall_risk_score * 100).toFixed(0)}%`}
+                verdict={risk.deterministic_override ? 'DTL DECIDED' : 'synthesis only'}
+                ok={risk.deterministic_override}
+              />
+            )}
           </div>
         </div>
 

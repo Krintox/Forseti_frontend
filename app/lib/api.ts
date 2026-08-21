@@ -1,4 +1,15 @@
-import type { ArenaState, ArtifactEnvelope, AttackVector, RoundResult } from './types';
+import type {
+  ArenaState,
+  ArtifactEnvelope,
+  AttackVector,
+  CampaignResult,
+  DeceptionVerdict,
+  FirewallVerdict,
+  KillChainCoverage,
+  KillChainScore,
+  KillChainStage,
+  RoundResult,
+} from './types';
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
@@ -61,6 +72,24 @@ export const api = {
   recordings: () => req<{ recordings: any[] }>('/api/arena/recordings'),
   replay: (id: string) => req<any>(`/api/arena/replay/${id}`),
   demo: () => req<any>('/api/demo/start', { method: 'POST' }),
+
+  intentFirewall: () =>
+    req<{ verdicts: FirewallVerdict[]; count: number; hard_drift_count: number;
+      partial_drift_count: number; allow_count: number }>('/api/arena/intent-firewall'),
+
+  deceptionLab: () =>
+    req<{ verdicts: DeceptionVerdict[]; count: number; detected_count: number;
+      clean_count: number }>('/api/arena/deception-lab'),
+
+  killChain: () =>
+    req<{ stages: KillChainStage[]; last_round: KillChainScore | null;
+      session_coverage: KillChainCoverage }>('/api/arena/kill-chain'),
+
+  runCampaign: (opts: { round_numbers?: number[] | null; dtl_enabled?: boolean; speed?: number }) =>
+    req<CampaignResult>('/api/arena/campaign', {
+      method: 'POST',
+      body: JSON.stringify({ dtl_enabled: true, speed: 1.0, round_numbers: null, ...opts }),
+    }),
 
   metrics: () => req<ArtifactEnvelope>('/api/metrics'),
   evaluation: () =>
