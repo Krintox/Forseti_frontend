@@ -14,7 +14,17 @@ export function useArtifact<T>(loader: () => Promise<T>, deps: any[] = []) {
     try {
       setData(await loader());
     } catch (e: any) {
-      setError(e?.message ?? 'Request failed');
+      // Free-tier hosting (Render et al.) can bounce a request during its own
+      // routing warm-up right after a cold start, before the origin is fully
+      // registered - a transient edge failure, not an application error. One
+      // short-delayed retry absorbs exactly that window instead of leaving a
+      // judge's first click on a page permanently showing "request failed".
+      try {
+        await new Promise((r) => setTimeout(r, 1500));
+        setData(await loader());
+      } catch (e2: any) {
+        setError(e2?.message ?? e?.message ?? 'Request failed');
+      }
     } finally {
       setLoading(false);
     }
