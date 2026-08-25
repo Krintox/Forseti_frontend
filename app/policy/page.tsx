@@ -8,7 +8,7 @@ import { api, inr } from '../lib/api';
 
 const POLICIES = [
   { id: 'STANDARD', desc: 'Baseline. Per-rail checks only, no global aggregation.' },
-  { id: 'STRICT_INVARIANT', desc: 'All six authority-dimension invariants (amount, per-transaction, rail, merchant, purpose, time) are enforced on every transaction.' },
+  { id: 'STRICT_INVARIANT', desc: 'All seven authority-dimension invariants (amount, per-transaction, rail, merchant, beneficiary, purpose, time) are enforced on every transaction.' },
   { id: 'ADAPTIVE_CONTAINMENT', desc: 'Partial authorisation and shadow execution are active.' },
   { id: 'CAPABILITY_QUARANTINED', desc: 'Agent spending capability has been downgraded after a violation.' },
   { id: 'TIGHTENED_HEADROOM_V2', desc: 'Headroom buffer reduced after a budget-ceiling breach.' },

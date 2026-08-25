@@ -12,6 +12,8 @@ import {
   Eye,
   FileCheck2,
   FlaskConical,
+  Gavel,
+  KeyRound,
   LayoutDashboard,
   Lock,
   Scale,
@@ -27,11 +29,13 @@ import { inr } from '../lib/api';
 /** Every entry here resolves to a real page. No dead navigation. */
 export const NAV = [
   { href: '/', label: 'Overview', icon: LayoutDashboard, group: 'Command' },
+  { href: '/judge-mode', label: 'Judge Mode', icon: Gavel, group: 'Command' },
   { href: '/arena', label: 'Live Arena', icon: Swords, group: 'Command' },
   { href: '/simulator', label: 'Attack Simulator', icon: Crosshair, group: 'Command' },
   { href: '/defense', label: 'Defense Center', icon: ShieldCheck, group: 'Command' },
   { href: '/transactions', label: 'Transaction Monitor', icon: Activity, group: 'Operations' },
   { href: '/ledger', label: 'Delegation Ledger', icon: BookOpen, group: 'Operations' },
+  { href: '/tokens', label: 'Tokenization', icon: KeyRound, group: 'Operations' },
   { href: '/agents', label: 'Agents', icon: Users, group: 'Operations' },
   { href: '/threat-intel', label: 'Threat Intelligence', icon: Eye, group: 'Operations' },
   { href: '/detection', label: 'Detection Lab', icon: BarChart3, group: 'Science' },

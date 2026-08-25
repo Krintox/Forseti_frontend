@@ -37,7 +37,7 @@ export default function ThreatIntelPage() {
       <PageHeader
         title="Threat Intelligence"
         description={`Coverage map of the researched attack surface. Every vector carries a real-world citation; the ${
-          summary?.implemented_count ?? 'nine'
+          summary?.implemented_count ?? '17'
         } executable ones are marked separately so research breadth is never confused with implemented depth.`}
       />
 

@@ -3,7 +3,7 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { AlertOctagon, Link2, ShieldAlert, ShieldCheck, Waypoints } from 'lucide-react';
+import { AlertOctagon, Link2, Scale, ShieldAlert, ShieldCheck, Waypoints } from 'lucide-react';
 import { AttackFlowCanvas } from '../components/AttackFlowCanvas';
 import { ArenaControls } from '../components/ArenaControls';
 import { EventLog } from '../components/EventLog';
@@ -22,6 +22,7 @@ function ArenaView() {
   const deceptionVerdicts = lastRound?.deception_verdicts ?? [];
   const deceptionDetections = deceptionVerdicts.filter((v) => v.verdict === 'DECEPTION_DETECTED');
   const killChain = lastRound?.kill_chain ?? null;
+  const settlementVerdict = lastRound?.settlement_verdict ?? null;
   const [inspected, setInspected] = useState<any>(null);
   const [inspectedNode, setInspectedNode] = useState<string | null>(null);
   const params = useSearchParams();
@@ -215,7 +216,7 @@ function ArenaView() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-4">
             <Card title="Intent Firewall" subtitle="Drift vector, reshaped from the DTL's own proofs">
               {lastFirewall ? (
                 <>
@@ -317,6 +318,34 @@ function ArenaView() {
                 </>
               ) : (
                 <p className="text-xs text-slate-400">No round scored yet.</p>
+              )}
+            </Card>
+
+            <Card title="Settlement & Reconciliation" subtitle="Post-authorization lifecycle, not an authority dimension">
+              {settlementVerdict ? (
+                settlementVerdict.verdict === 'CONFLICT_DETECTED' ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Scale className="h-4 w-4 text-rose-600" />
+                      <span className="text-[12px] font-black text-rose-700">
+                        {settlementVerdict.conflict_code}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-slate-700">
+                      {settlementVerdict.observed_mismatch}
+                    </p>
+                    <p className="mt-2 text-[10px] font-mono text-slate-500">
+                      {settlementVerdict.containment_action}
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                    Consistent — every settlement leg this round agrees with the others.
+                  </div>
+                )
+              ) : (
+                <p className="text-xs text-slate-400">No transaction evaluated yet.</p>
               )}
             </Card>
           </div>

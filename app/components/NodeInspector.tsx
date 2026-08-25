@@ -30,7 +30,7 @@ const NODE_META: Record<string, NodeMeta> = {
   principal: {
     title: 'User Grant',
     kicker: 'The delegation itself',
-    role: 'The authority a human actually handed the agent - not just a spend ceiling, but a grant with six independent dimensions: amount, per-transaction size, permitted rails, merchant scope, economic purpose, and a validity window.',
+    role: 'The authority a human actually handed the agent - not just a spend ceiling, but a grant with seven independent dimensions: amount, per-transaction size, permitted rails, merchant scope, beneficiary scope, economic purpose, and a validity window.',
     inputs: 'A natural-language or structured instruction from the principal (e.g. "₹12,000 for groceries, UPI only, this week").',
     outputs: 'The authority vector every invariant below is checked against.',
   },
@@ -65,7 +65,7 @@ const NODE_META: Record<string, NodeMeta> = {
   dtl: {
     title: 'FORSETI DTL',
     kicker: 'Delegation-Trust Ledger — global authority check',
-    role: 'The one component that sees every rail at once. It does not just sum a budget: it evaluates the transaction against all six dimensions of the grant - amount, per-transaction cap, rail, merchant, purpose, time - deterministically, with no ML and no training data required.',
+    role: 'The one component that sees every rail at once. It does not just sum a budget: it evaluates the transaction against all seven dimensions of the grant - amount, per-transaction cap, rail, merchant, beneficiary, purpose, time - deterministically, with no ML and no training data required.',
     inputs: 'A transaction plus the live authority state (all rails, all dimensions).',
     outputs: 'A proof naming exactly which dimension(s) were violated, or a clean pass.',
   },
@@ -73,7 +73,7 @@ const NODE_META: Record<string, NodeMeta> = {
     title: 'ML Detector',
     kicker: 'Trained gradient-boosted classifier + SHAP',
     role: 'Scores each transaction for behavioural and semantic risk patterns the deterministic invariants do not encode - drift in velocity, merchant risk, basket composition. It sees one transaction at a time, so a single leg of a cross-rail split still scores low: that is honest, and it is exactly the gap the DTL exists to close.',
-    inputs: '29 engineered features spanning the transaction, the delegation and cross-rail context.',
+    inputs: '37 engineered features across six groups: raw transaction, delegation, cross-rail, semantic, security, and graph (Payment Graph Sentinel).',
     outputs: 'A calibrated fraud probability plus a SHAP attribution for it.',
   },
   cost_governor: {
@@ -93,7 +93,7 @@ const NODE_META: Record<string, NodeMeta> = {
   exposure_meter: {
     title: 'Exposure',
     kicker: 'Aggregate spend vs. ceiling',
-    role: 'The live readout of one dimension only - AMOUNT - across every rail combined. This is what a naive "just add up the balances" design would treat as the whole system; here it is one of six rows the DTL checks.',
+    role: 'The live readout of one dimension only - AMOUNT - across every rail combined. This is what a naive "just add up the balances" design would treat as the whole system; here it is one of seven rows the DTL checks.',
     inputs: 'Settled + authorized + pending + reserved spend, summed across all rails.',
     outputs: 'A percentage of the delegated ceiling currently committed.',
   },
@@ -111,6 +111,7 @@ const DIMENSION_LABEL: Record<string, string> = {
   PER_TX: 'Per-transaction',
   RAIL: 'Rail',
   MERCHANT: 'Merchant',
+  BENEFICIARY: 'Beneficiary',
   PURPOSE: 'Purpose',
   TIME: 'Time',
 };
@@ -348,11 +349,11 @@ function RailFacts({
 
 /** The authority vector, one row per dimension - the concept the principal and DTL nodes both explain. */
 function AuthorityVectorTable({ vector }: { vector: Record<string, any> }) {
-  const rows = ['AMOUNT', 'PER_TX', 'RAIL', 'MERCHANT', 'PURPOSE', 'TIME'];
+  const rows = ['AMOUNT', 'PER_TX', 'RAIL', 'MERCHANT', 'BENEFICIARY', 'PURPOSE', 'TIME'];
   return (
     <div className="rounded-xl border border-blue-200 bg-blue-50/40">
       <p className="border-b border-blue-100 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-blue-700">
-        The full authority vector — six dimensions, not one ceiling
+        The full authority vector — seven dimensions, not one ceiling
       </p>
       <dl className="divide-y divide-blue-100">
         {rows.map((key) => {

@@ -8,7 +8,9 @@ import type {
   KillChainCoverage,
   KillChainScore,
   KillChainStage,
+  PaymentToken,
   RoundResult,
+  TokenScopeViolation,
 } from './types';
 
 export const API_BASE =
@@ -113,6 +115,36 @@ export const api = {
   feedback: () => req<any>('/api/feedback/history'),
 
   aiStatus: () => req<any>('/api/ai/status'),
+
+  issueToken: (opts: {
+    agent_id?: string;
+    principal_id?: string;
+    scope?: string;
+    validity_hours?: number;
+    amount_ceiling?: number | null;
+    per_transaction_limit?: number | null;
+    allowed_rails?: string[] | null;
+    merchant_scope?: string[] | null;
+    purpose_scope?: string | null;
+  }) =>
+    req<{ status: string; token: PaymentToken }>('/api/tokens/issue', {
+      method: 'POST',
+      body: JSON.stringify(opts),
+    }),
+  listTokens: () => req<{ tokens: PaymentToken[] }>('/api/tokens'),
+  revokeToken: (token_id: string, reason = 'REVOKED_BY_PRINCIPAL') =>
+    req<{ status: string; token: PaymentToken }>(`/api/tokens/${token_id}/revoke`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  useToken: (
+    token_id: string,
+    opts: { rail: string; amount: number; merchant_id?: string; merchant_name?: string; merchant_mcc?: string; category?: string },
+  ) =>
+    req<{ status: string; ok: boolean; violation: TokenScopeViolation | null; token: PaymentToken }>(
+      `/api/tokens/${token_id}/use`,
+      { method: 'POST', body: JSON.stringify(opts) },
+    ),
 };
 
 /** Indian-format currency, used everywhere amounts are shown. */

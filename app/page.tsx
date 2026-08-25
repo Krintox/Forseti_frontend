@@ -37,7 +37,7 @@ export default function OverviewPage() {
     <>
       <PageHeader
         title="Executive Overview"
-        description="FORSETI protects delegated authority, not a spend ceiling: a delegated agent may act only within the authority it was granted, across all six dimensions of the grant — amount, per-transaction size, rail, merchant, purpose and time."
+        description="FORSETI protects delegated authority, not a spend ceiling: a delegated agent may act only within the authority it was granted, across all seven dimensions of the grant — amount, per-transaction size, rail, merchant, beneficiary, purpose and time."
       >
         <Link href="/arena">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-blue-700">
@@ -250,12 +250,13 @@ function AuthorityDimensions() {
   const registry = state?.invariant_registry ?? [];
   if (!vector || registry.length === 0) return null;
 
-  const ORDER = ['AMOUNT', 'PER_TX', 'RAIL', 'MERCHANT', 'PURPOSE', 'TIME'] as const;
+  const ORDER = ['AMOUNT', 'PER_TX', 'RAIL', 'MERCHANT', 'BENEFICIARY', 'PURPOSE', 'TIME'] as const;
   const LABEL: Record<string, string> = {
     AMOUNT: 'Amount',
     PER_TX: 'Per-transaction',
     RAIL: 'Rail',
     MERCHANT: 'Merchant',
+    BENEFICIARY: 'Beneficiary',
     PURPOSE: 'Purpose',
     TIME: 'Time',
   };
@@ -270,6 +271,10 @@ function AuthorityDimensions() {
       return rails.length >= 3 ? 'any rail' : rails.map((r) => r.split('_')[0]).join(' · ') || 'none';
     }
     if (key === 'MERCHANT') return `MCC ${(row.granted ?? []).join(', ')}`;
+    if (key === 'BENEFICIARY') {
+      const scope: string[] = row.granted ?? [];
+      return scope.length ? scope.join(' · ') : 'any beneficiary';
+    }
     if (key === 'PURPOSE') return String(row.granted ?? '—');
     if (key === 'TIME') return row.expired ? 'EXPIRED' : `${row.granted_hours}h window`;
     return '—';
@@ -278,7 +283,7 @@ function AuthorityDimensions() {
   return (
     <Card
       title="What the user actually delegated"
-      subtitle="Authority is multidimensional — the money limit is one row of six, and each has its own invariant"
+      subtitle="Authority is multidimensional — the money limit is one row of seven, and each has its own invariant"
       right={<Badge tone="blue">live grant</Badge>}
     >
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

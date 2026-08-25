@@ -23,6 +23,14 @@ const STRATEGIES = [
   { key: 'BASELINE_POISONING', round: 3, label: 'Baseline Poisoning', dimension: 'AMOUNT' },
   { key: 'REVOCATION_FLOOD', round: 4, label: 'Revocation Flood', dimension: 'TIME' },
   { key: 'VELOCITY_BURST', round: 5, label: 'Velocity Burst', dimension: 'AMOUNT' },
+  { key: 'BENEFICIARY_DRIFT', round: 10, label: 'Beneficiary Drift', dimension: 'BENEFICIARY' },
+  { key: 'PROMPT_INJECTION', round: 11, label: 'Prompt Injection', dimension: 'AGENT_INTEGRITY' },
+  { key: 'TOOL_OUTPUT_POISONING', round: 12, label: 'Tool Output Poisoning', dimension: 'AGENT_INTEGRITY' },
+  { key: 'CONTEXT_MEMORY_POISONING', round: 13, label: 'Context/Memory Poisoning', dimension: 'AGENT_INTEGRITY' },
+  { key: 'AUTHORITY_IMPERSONATION', round: 14, label: 'Authority Impersonation', dimension: 'AGENT_INTEGRITY' },
+  { key: 'CONSTRAINT_EROSION', round: 15, label: 'Constraint Erosion', dimension: 'PURPOSE' },
+  { key: 'SETTLEMENT_CONFLICT', round: 16, label: 'Settlement Conflict', dimension: 'SETTLEMENT_INTEGRITY' },
+  { key: 'RECONCILIATION_DRIFT', round: 17, label: 'Reconciliation Drift', dimension: 'SETTLEMENT_INTEGRITY' },
 ];
 
 const DIMENSION_TONE: Record<string, string> = {
@@ -32,6 +40,9 @@ const DIMENSION_TONE: Record<string, string> = {
   PURPOSE: 'text-rose-600',
   MERCHANT: 'text-emerald-600',
   TIME: 'text-slate-600',
+  BENEFICIARY: 'text-fuchsia-600',
+  AGENT_INTEGRITY: 'text-orange-600',
+  SETTLEMENT_INTEGRITY: 'text-cyan-600',
 };
 
 /**

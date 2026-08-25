@@ -67,7 +67,7 @@ export default function AttackSimulatorPage() {
     <>
       <PageHeader
         title="Attack Simulator & Explorer"
-        description="The identify layer. 55 researched vectors, nine of which are deeply implemented and executable against the simulator. The distinction is explicit on every card."
+        description="The identify layer. 63 researched vectors, 17 of which are deeply implemented and executable against the simulator. The distinction is explicit on every card."
       >
         {summary && (
           <>

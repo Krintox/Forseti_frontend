@@ -195,6 +195,22 @@ export interface UnifiedRisk {
   note: string;
 }
 
+/** Settlement Reconciliation Engine: post-authorization lifecycle checks, distinct from DTL invariants and Deception Lab. */
+export interface SettlementVerdict {
+  verdict: 'CONSISTENT' | 'CONFLICT_DETECTED';
+  conflict_code: string | null;
+  kill_chain_stage?: string;
+  obligation_id?: string;
+  leg_tx_ids?: string[];
+  leg_summary?: string;
+  canonical_expectation?: string;
+  observed_mismatch?: string;
+  economic_exposure_at_risk?: number;
+  explanation?: string;
+  containment_action?: string;
+  proof_id?: string;
+}
+
 export interface RoundResult {
   round_number: number;
   strategy: string;
@@ -203,6 +219,7 @@ export interface RoundResult {
   step_results: StepResult[];
   firewall_verdicts?: FirewallVerdict[];
   deception_verdicts?: DeceptionVerdict[];
+  settlement_verdict?: SettlementVerdict;
   kill_chain?: KillChainScore;
   risk?: UnifiedRisk;
   authority_state: AuthorityState;
@@ -214,6 +231,35 @@ export interface RoundResult {
   next_red_plan: any;
   adaptation_history: any[];
   events: ArenaEvent[];
+}
+
+/** Synthetic tokenized-payment credential (app/tokenization/) - a scoped view onto a DTL delegation, not a second source of authority. */
+export interface PaymentToken {
+  token_id: string;
+  issuer: string;
+  agent_id: string;
+  principal_id: string;
+  authority_id: string;
+  scope: string;
+  allowed_rails: string[];
+  merchant_scope: string[];
+  purpose_scope: string;
+  amount_ceiling: number;
+  per_transaction_limit: number | null;
+  issued_at: string;
+  expires_at: string;
+  status: 'ISSUED' | 'ACTIVE' | 'SCOPED' | 'USED' | 'REVOKED' | 'EXPIRED';
+  revocation_state: string | null;
+  cumulative_used: number;
+  use_count: number;
+}
+
+export interface TokenScopeViolation {
+  proof_id: string;
+  token_id: string;
+  tx_id: string | null;
+  violation_code: string;
+  explanation: string;
 }
 
 export interface CampaignResult {
