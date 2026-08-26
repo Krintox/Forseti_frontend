@@ -175,7 +175,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="text-slate-500">{label}</dt>
-      <dd className="font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
+      <dd className="min-w-0 break-all font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
     </div>
   );
 }

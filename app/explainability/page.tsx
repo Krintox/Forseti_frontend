@@ -60,8 +60,8 @@ export default function ExplainabilityPage() {
           ) : (
             <ul className="space-y-1.5">
               {ranked.slice(0, 14).map((row) => (
-                <li key={row.feature} className="flex items-center gap-3">
-                  <span className="w-56 shrink-0 truncate font-mono text-[11px] text-slate-700">
+                <li key={row.feature} className="flex items-center gap-2 sm:gap-3">
+                  <span className="w-24 shrink-0 truncate font-mono text-[10px] text-slate-700 sm:w-40 sm:text-[11px] lg:w-56">
                     {row.feature}
                   </span>
                   <div className="h-3.5 flex-1 overflow-hidden rounded-full bg-slate-100">
@@ -70,7 +70,7 @@ export default function ExplainabilityPage() {
                       style={{ width: `${Math.max(1, (row.mean_abs_shap / maxVal) * 100)}%` }}
                     />
                   </div>
-                  <span className="w-20 shrink-0 text-right font-mono text-[10px] font-bold text-slate-600">
+                  <span className="w-14 shrink-0 text-right font-mono text-[10px] font-bold text-slate-600 sm:w-20">
                     {num(row.mean_abs_shap, 4)}
                   </span>
                 </li>
@@ -117,7 +117,7 @@ export default function ExplainabilityPage() {
                 );
                 return (
                   <li key={feature} className="flex items-center gap-3">
-                    <span className="w-56 shrink-0 truncate font-mono text-[11px] text-slate-700">
+                    <span className="w-24 shrink-0 truncate font-mono text-[10px] text-slate-700 sm:w-40 sm:text-[11px] lg:w-56">
                       {feature}
                     </span>
                     <div className="flex h-3.5 flex-1 items-center">

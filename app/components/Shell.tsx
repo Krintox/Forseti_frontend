@@ -57,13 +57,17 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col justify-between overflow-y-auto border-r border-slate-200 bg-white">
+      {/* Collapses to an icon-only rail below `lg`. It was a fixed w-60
+          shrink-0 at every width, which left ~150px of usable content on a
+          390px viewport and pushed long identifiers and the SVG canvas past
+          the right edge. */}
+      <aside className="sticky top-0 flex h-screen w-14 shrink-0 flex-col justify-between overflow-y-auto border-r border-slate-200 bg-white lg:w-60">
         <div>
-          <Link href="/" className="flex items-center gap-3 border-b border-slate-100 p-4">
+          <Link href="/" className="flex items-center justify-center gap-3 border-b border-slate-100 p-2 lg:justify-start lg:p-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-800 text-white shadow-md shadow-blue-500/20">
               <Scale className="h-4.5 w-4.5" />
             </div>
-            <div>
+            <div className="hidden lg:block">
               <h1 className="text-base font-black leading-none tracking-tight">FORSETI</h1>
               <p className="mt-1 text-[9px] font-medium leading-none text-slate-400">
                 Delegated Authority. Global Integrity.
@@ -71,11 +75,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
 
-          <nav className="p-2.5">
+          <nav className="p-1.5 lg:p-2.5">
             {groups.map((group) => (
               <div key={group} className="mb-3">
                 <p className="px-2.5 pb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                  {group}
+                  <span className="hidden lg:inline">{group}</span>
                 </p>
                 <div className="space-y-0.5">
                   {NAV.filter((n) => n.group === group).map((item) => {
@@ -86,14 +90,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+                        title={item.label}
+                        className={`flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors lg:justify-start ${
                           active
                             ? 'bg-blue-50 font-bold text-blue-700'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                       >
                         <Icon className="h-3.5 w-3.5 shrink-0" />
-                        {item.label}
+                        <span className="hidden lg:inline">{item.label}</span>
                       </Link>
                     );
                   })}
@@ -103,7 +108,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        <div className="border-t border-slate-100 p-3">
+        <div className="hidden border-t border-slate-100 p-3 lg:block">
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
               Global Authority
@@ -145,7 +150,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <main className="mx-auto w-full max-w-[1600px] flex-1 space-y-5 p-6">{children}</main>
+        <main className="mx-auto w-full min-w-0 max-w-[1600px] flex-1 space-y-5 p-3 sm:p-4 lg:p-6">{children}</main>
         <footer className="border-t border-slate-200 px-6 py-3 text-center text-[10px] font-mono text-slate-400">
           FORSETI — synthetic, standards-inspired payment simulator. No real payment credentials,
           no production connections. Mastercard Innovation Challenge @ GFF 2026.

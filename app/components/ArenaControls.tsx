@@ -296,9 +296,9 @@ export function ArenaControls() {
                 >
                   {on ? '✓' : ''}
                 </span>
-                <span>
+                <span className="min-w-0">
                   {s.label}
-                  <span className={`mt-1 block text-[8px] font-bold ${DIMENSION_TONE[s.dimension] ?? 'text-slate-500'}`}>
+                  <span className={`mt-1 block break-words text-[8px] font-bold leading-tight ${DIMENSION_TONE[s.dimension] ?? 'text-slate-500'}`}>
                     {s.flagship ? 'FLAGSHIP · ' : ''}{s.dimension} DIM
                   </span>
                 </span>

@@ -300,10 +300,10 @@ function ArenaView() {
                   </div>
                   <dl className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
                     <Field
-                      label="Detection latency"
+                      label="Caught at step"
                       value={
-                        killChain.time_to_detection_ms != null
-                          ? `${killChain.time_to_detection_ms.toFixed(0)}ms`
+                        killChain.detected_at_step != null
+                          ? `${killChain.detected_at_step} of ${killChain.steps_attempted}`
                           : '—'
                       }
                     />

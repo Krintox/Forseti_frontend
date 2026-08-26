@@ -63,8 +63,45 @@ export type AuthorityVector = Record<
   AuthorityDimensionRow
 >;
 
+/** A sub-delegation link: who granted a narrowed slice of authority to whom. */
+export interface DelegationLinkRow {
+  link_id: string;
+  grantor: string;
+  grantee: string;
+  parent_link_id: string | null;
+  reserved_pool: number;
+  pool_remaining: number;
+  permitted_rails: string[];
+  permitted_mccs: string[] | null;
+  per_transaction_cap: number | null;
+  revoked: boolean;
+  /** False = forged. Detection is structural, not a self-declared flag. */
+  attestation_valid: boolean;
+}
+
+export interface ChainViolation {
+  tx_id?: string;
+  code: string;
+  link_id?: string;
+  reason?: string;
+}
+
+/** What the ACTIVE POLICY changes about the enforced grant (Blue's ladder, made load-bearing). */
+export interface PolicyOverlay {
+  active_policy: string;
+  suspends_all_spend: boolean;
+  granted_ceiling: number;
+  effective_ceiling: number;
+  ceiling_withheld: number;
+  granted_per_transaction_cap: number | null;
+  effective_per_transaction_cap: number | null;
+  requires_sku_attestation: boolean;
+}
+
 export interface InvariantRegistryRow {
   code: string;
+  /** "authority_dimension" | "policy_state" - INV_08 is a policy state, not an 8th dimension. */
+  kind?: string;
   dimension: string;
   question: string;
   expression: string;
@@ -94,10 +131,21 @@ export interface PqcStatus {
   signature_bytes: number;
 }
 
+/** One rung of Blue's escalation ladder, generated from the backend DefensePolicy enum. */
+export interface PolicyRung {
+  code: string;
+  rung: number;
+  description: string;
+  enforced_effect: string;
+}
+
 export interface ArenaState {
   authority_state: AuthorityState;
   authority_vector: AuthorityVector;
   invariant_registry: InvariantRegistryRow[];
+  /** Source of truth for the policy ladder - the UI must not hardcode its own copy. */
+  policy_ladder: PolicyRung[];
+  policy_overlay: PolicyOverlay;
   detector_status: DetectorStatus;
   pqc_status: PqcStatus;
   active_policy: string;
@@ -162,7 +210,20 @@ export interface KillChainScore {
   stage: KillChainStage | null;
   detected: boolean;
   contained: boolean;
-  time_to_detection_ms: number | null;
+  /**
+   * Wall-clock gap between two PACED events. This measures the presentation
+   * timeline, not the engine - the orchestrator deliberately sleeps between
+   * steps so a human can follow causality. It is shown for the event log and
+   * is NOT a term in attack_chain_score. Real inline latency is in
+   * artifacts/benchmark/latency.json (p99 ~0.9 ms).
+   */
+  wall_clock_to_detection_ms_presentation_paced: number | null;
+  /** WHICH step detection landed on - a property of the attack's structure. */
+  detected_at_step: number | null;
+  steps_attempted: number;
+  /** Share of the attempted objective that was stopped. */
+  exposure_prevented_share: number;
+  earliness_share: number;
   economic_exposure_prevented_inr: number;
   blast_radius_score: number;
   attack_chain_score: number;
@@ -184,11 +245,17 @@ export interface UnifiedRisk {
   overall_risk_score: number;
   confidence: number;
   risk_components: {
-    dtl_invariant_risk: number;
-    intent_firewall_risk: number;
+    /**
+     * Five MUTUALLY INDEPENDENT components. An earlier revision averaged five
+     * terms of which three were near-deterministic functions of one `detected`
+     * boolean; `test_components_are_mutually_independent` now pins that setting
+     * one input moves exactly one component.
+     */
+    authority_breach_severity: number;
+    intent_drift_severity: number;
     deception_lab_risk: number;
     ml_anomaly_risk: number;
-    kill_chain_risk: number;
+    structural_integrity_risk: number;
   };
   deterministic_override: boolean;
   weighting: string;
@@ -230,6 +297,8 @@ export interface RoundResult {
   detected: boolean;
   next_red_plan: any;
   adaptation_history: any[];
+  chain_violations?: ChainViolation[];
+  delegation_chain?: DelegationLinkRow[];
   events: ArenaEvent[];
 }
 
@@ -264,6 +333,10 @@ export interface TokenScopeViolation {
 
 export interface CampaignResult {
   round_numbers: number[];
+  /** What Red ACTUALLY executed. In adaptive mode the planner chooses these. */
+  strategies_executed?: string[];
+  adaptive?: boolean;
+  policy_overlay?: PolicyOverlay;
   rounds: RoundResult[];
   kill_chain_coverage: KillChainCoverage;
   final_active_policy: string;

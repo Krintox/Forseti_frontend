@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "e2e:responsive": "node e2e/responsive.mjs",
+    "e2e:functional": "node e2e/functional.mjs",
+    "e2e": "node e2e/responsive.mjs && node e2e/functional.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

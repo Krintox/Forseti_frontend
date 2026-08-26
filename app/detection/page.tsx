@@ -142,10 +142,12 @@ export default function DetectionLabPage() {
               block={baselines?.condition_all_families_seen?.baselines}
             />
           </div>
+          <CrossRailIntervals headline={baselines?.headline_finding} />
+
           {baselines?.measured_dtl_lift && (
             <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-blue-800">
-                Measured DTL feature lift
+                Baseline-harness DTL lift
               </p>
               <p className="mt-1 font-mono text-2xl font-black text-blue-900">
                 {baselines.measured_dtl_lift.pr_auc_lift >= 0 ? '+' : ''}
@@ -153,6 +155,16 @@ export default function DetectionLabPage() {
               </p>
               <p className="mt-1 text-[11px] text-blue-800">
                 {baselines.measured_dtl_lift.definition}
+              </p>
+              {/* Two DIFFERENT experiments both used to be called "the DTL feature
+                  lift", which is how one quantity ended up in the repo with four
+                  values. Naming which one this is costs a line and closes it. */}
+              <p className="mt-1.5 text-[10px] leading-relaxed text-blue-700">
+                This is the <span className="font-bold">baseline-harness</span> lift: two
+                separately trained architectures, family-seen condition. It is a different
+                measurement from the <span className="font-bold">feature-group</span> lift in the
+                ablation below, which removes the DTL feature groups from a single model and
+                retrains. Both are real; they are not interchangeable.
               </p>
             </div>
           )}
@@ -296,5 +308,120 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
       <dt className="text-slate-500">{label}</dt>
       <dd className="font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
     </div>
+  );
+}
+
+
+/**
+ * The cross-rail slice is 64 transactions. Showing five recalls to four decimal
+ * places on a sample that size invites the reader to resolve differences the
+ * data cannot support - which is exactly what happened: a 0.016 gap was read as
+ * proven generalisation in the README headline for a while.
+ *
+ * So the intervals are on screen next to the numbers, and each comparison is
+ * labelled with whether it survives them.
+ */
+function CrossRailIntervals({ headline }: { headline: any }) {
+  const ci = headline?.cross_rail_split_recall_ci95;
+  if (!ci?.held_out) return null;
+
+  const LABELS: Record<string, string> = {
+    rules_only: 'Rules only',
+    per_rail_ml: 'Per-rail ML (siloed)',
+    ml_without_dtl: 'Global ML, no DTL features',
+    hybrid_dtl_ml: 'Hybrid ML + DTL features',
+    dtl_invariant_only: 'Deterministic DTL invariant',
+  };
+
+  const overlaps = (a: any, b: any) =>
+    !a || !b ? true : a.ci95[0] <= b.ci95[1] && b.ci95[0] <= a.ci95[1];
+
+  const withDtl = ci.held_out.hybrid_dtl_ml;
+  const withoutDtl = ci.held_out.ml_without_dtl;
+  const seenHybrid = ci.seen?.hybrid_dtl_ml;
+
+  const separationReal = withDtl && withoutDtl && !overlaps(withDtl, withoutDtl);
+  const generalisationResolvable = withDtl && seenHybrid && !overlaps(withDtl, seenHybrid);
+  const n = withDtl?.n;
+
+  return (
+    <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
+        Cross-rail recall with 95% confidence intervals
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+        {ci.method}
+        {n ? ` · n=${n} held-out cross-rail transactions` : ''}. {ci.why}
+      </p>
+
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-left text-xs">
+          <thead>
+            <tr className="border-b border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
+              <th className="pb-2 font-bold">Architecture</th>
+              <th className="pb-2 font-bold">Recall (held out)</th>
+              <th className="pb-2 font-bold">95% CI</th>
+              <th className="pb-2 font-bold">Caught</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {Object.entries(ci.held_out).map(([key, band]: any) => (
+              <tr key={key} className={key === 'dtl_invariant_only' ? 'bg-blue-50/60' : ''}>
+                <td className="py-2 font-semibold text-slate-800">{LABELS[key] ?? key}</td>
+                <td className="py-2 font-mono font-bold text-slate-900">{band.recall.toFixed(4)}</td>
+                <td className="py-2 font-mono text-slate-600">
+                  [{band.ci95[0].toFixed(3)}, {band.ci95[1].toFixed(3)}]
+                </td>
+                <td className="py-2 font-mono text-slate-500">
+                  {band.caught}/{band.n}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        <Verdict
+          holds={Boolean(separationReal)}
+          yes="Aggregate feature vs no aggregate feature: intervals do not overlap — this separation is real."
+          no="Aggregate feature vs no aggregate feature: intervals overlap — this run does not establish the separation."
+        />
+        <Verdict
+          holds={!generalisationResolvable}
+          yes={`Hybrid ML held-out vs seen: intervals overlap at n=${n}, so this table does NOT prove the classifier generalises to an unseen family. We do not claim it does.`}
+          no={`Hybrid ML held-out vs seen: now separable at n=${n} — the classifier measurably lost ground on the unseen family.`}
+          neutralWhenTrue
+        />
+        <p className="text-[11px] leading-relaxed text-slate-600">
+          <span className="font-bold">The invariant&apos;s two columns are equal by construction</span>{' '}
+          — an identity, not a measurement that happened to come out even. That is the property no
+          sample size can take away, and it is the claim.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Verdict({
+  holds,
+  yes,
+  no,
+  neutralWhenTrue = false,
+}: {
+  holds: boolean;
+  yes: string;
+  no: string;
+  neutralWhenTrue?: boolean;
+}) {
+  const tone = holds
+    ? neutralWhenTrue
+      ? 'border-slate-300 bg-white text-slate-700'
+      : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : 'border-amber-200 bg-amber-50 text-amber-800';
+  return (
+    <p className={`rounded-lg border px-3 py-2 text-[11px] font-semibold leading-relaxed ${tone}`}>
+      {holds ? yes : no}
+    </p>
   );
 }
