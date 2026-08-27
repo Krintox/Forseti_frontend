@@ -67,12 +67,18 @@ export default function AttackSimulatorPage() {
     <>
       <PageHeader
         title="Attack Simulator & Explorer"
-        description="The identify layer. 63 researched vectors, 17 of which are deeply implemented and executable against the simulator. The distinction is explicit on every card."
+        description="17 vectors are implemented and execute against the live simulator. The rest of the catalogue is researched landscape, not coverage — every card says which it is, and whether the row is even about delegated agent authority."
       >
         {summary && (
           <>
-            <Badge tone="blue">{summary.total_vectors} researched</Badge>
+            {/* Lead with the number that is a CLAIM, not the number that is
+                large. `total_vectors` counts researched rows, most of which
+                never execute; putting it first invited it to be read as
+                coverage, which is the criticism the scope flags exist to
+                answer. */}
             <Badge tone="green">{summary.implemented_count} executable</Badge>
+            <Badge tone="blue">{summary.in_thesis_scope_count} in thesis scope</Badge>
+            <Badge tone="slate">{summary.total_vectors} catalogued</Badge>
           </>
         )}
       </PageHeader>

@@ -70,6 +70,52 @@ for (const route of ROUTES) {
     : report.ok(`route ${route}`, `"${info.heading.slice(0, 38)}" · ${info.length} chars · ${info.controls} controls`);
 }
 
+// -------------------------------------------------- 1b. authority dimensions
+console.log('\n=== 1b. The seven authority dimensions ===');
+await goto(page, '/');
+const dims = await page.evaluate(() => {
+  const t = document.body.innerText;
+  return {
+    // INV_08_MANDATE_SUSPENDED is a POLICY STATE that the registry also tags
+    // TIME. A naive `registry.find(r => r.dimension === 'TIME')` returns it
+    // first, and the Time card then asks "is the mandate suspended?" instead of
+    // "is the delegation still inside its validity window?".
+    // Assert on the QUESTION, which is what a reader sees and what was wrong.
+    // The card renders the short code (`INV_06`), not the full registry key, so
+    // matching `INV_06_AUTHORITY_EXPIRED` here fails against correct output -
+    // which it did on the first run of this check.
+    timeAsksAboutValidity: /still inside its validity window/i.test(t),
+    timeAsksAboutSuspension: /mandate currently suspended/i.test(t),
+    // Presence, not adjacency, and deliberately free of backslash escapes.
+    //
+    // Three earlier attempts failed against CORRECT output. A word-boundary
+    // escape also matches inside "REAL-TIME" (the hyphen is a boundary);
+    // anchoring to a lone line was brittle against layout; and the third
+    // shipped a literal BACKSPACE character into the pattern, because the
+    // escape was mangled on the way into the file - a regex that could never
+    // match anything, failing against a page that was correct all along.
+    //
+    // The property is already pinned by the two checks either side of this
+    // one: the validity-window question belongs to INV_06's registry row and
+    // to nothing else, so if it renders, INV_06 resolved.
+    inv06Present: t.includes('INV_06'),
+    saysSixDimensions: /one of six|six dimensions|6 dimensions/i.test(t),
+  };
+});
+dims.timeAsksAboutValidity
+  ? report.ok('the TIME card asks about the validity window')
+  : report.fail('the TIME card asks about the validity window');
+dims.inv06Present
+  ? report.ok('INV_06 is rendered among the dimensions')
+  : report.fail('INV_06 is rendered among the dimensions');
+!dims.timeAsksAboutSuspension
+  ? report.ok('no dimension card asks the INV_08 suspension question')
+  : report.fail('a dimension card asks the INV_08 suspension question');
+!dims.saysSixDimensions
+  ? report.ok('no copy still claims six authority dimensions')
+  : report.fail('copy still claims six authority dimensions - there are seven');
+
+
 // ------------------------------------------------------------------- 2. live
 console.log('\n=== 2. Live event stream ===');
 await goto(page, '/arena');
@@ -128,6 +174,29 @@ round.invariants.length
 round.rows > 5
   ? report.ok('event stream populated', `${round.rows} rows`)
   : report.fail('event stream populated', `${round.rows} rows`);
+
+// The Detection caption used to be one unconditional sentence, written when a
+// leak in the generator kept cross-rail scores near zero. After the fix the
+// model scores those legs high, so the note sat under a 100.0% reading still
+// saying "a low score here is expected" - arguing with the number above it.
+const caption = await page.evaluate(() => {
+  const t = document.body.innerText;
+  const m = t.match(/([0-9.]+)%\s*\ncalibrated fraud probability/);
+  return {
+    score: m ? Number(m[1]) : null,
+    claimsLowIsExpected: /A low score here is (expected|the honest)/i.test(t),
+  };
+});
+if (caption.score == null) {
+  report.ok('ML caption consistency', 'no live score on screen to contradict');
+} else if (caption.score >= 50 && caption.claimsLowIsExpected) {
+  report.fail(
+    'the ML caption agrees with the score it sits under',
+    `score is ${caption.score}% but the caption still says a low score is expected`,
+  );
+} else {
+  report.ok('the ML caption agrees with the score it sits under', `${caption.score}%`);
+}
 
 // ----------------------------------------------------------- 4. the campaign
 console.log('\n=== 4. Multi-vector campaign ===');

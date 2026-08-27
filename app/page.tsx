@@ -289,7 +289,18 @@ function AuthorityDimensions() {
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {ORDER.map((key) => {
           const row: any = (vector as any)[key];
-          const inv = registry.find((r) => r.dimension === key);
+          // Prefer the invariant the backend put ON the row. Looking it up by
+          // dimension alone returns INV_08_MANDATE_SUSPENDED for TIME, because
+          // that is a POLICY STATE the registry also tags TIME and lists first -
+          // so the Time card rendered "is the mandate suspended?" instead of
+          // "is the delegation still inside its validity window?".
+          const inv =
+            registry.find(
+              (r) => r.code === row?.invariant && r.kind !== 'policy_state',
+            ) ??
+            registry.find(
+              (r) => r.dimension === key && r.kind !== 'policy_state',
+            );
           const expired = key === 'TIME' && row?.expired;
           return (
             <div

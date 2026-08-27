@@ -72,18 +72,68 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const pushEvent = useCallback((evt: ArenaEvent) => {
+  // Incoming frames are BUFFERED and flushed once per animation frame.
+  //
+  // This used to call setEvents() once per WebSocket message. That is fine for
+  // a single round, and it breaks under a campaign: the backend emits ~700
+  // events, they arrive in bursts, and React counts a burst of updates
+  // originating from the same tick as nested re-renders. Past the limit it logs
+  // "Maximum update depth exceeded" and bails out of the update - so the event
+  // log and the flow canvas silently stop tracking the very demo they exist to
+  // show. It reproduced only under a full 17-vector run, which is why every
+  // single-round check was clean.
+  //
+  // Batching collapses a burst into one state update. Nothing is dropped; the
+  // frames are held in a ref, which does not trigger renders, until the flush.
+  const pendingRef = useRef<ArenaEvent[]>([]);
+  const flushRef = useRef<number | null>(null);
+
+  const flushEvents = useCallback(() => {
+    flushRef.current = null;
+    const batch = pendingRef.current;
+    if (!batch.length) return;
+    pendingRef.current = [];
     setEvents((prev) => {
-      // Guarantee a stable unique React key even if a frame arrives without an
-      // event_id. Two keyless frames previously collided as duplicate keys.
-      const safe: ArenaEvent = evt.event_id
-        ? evt
-        : { ...evt, event_id: `local_${Date.now()}_${prev.length}` };
-      const next = [...prev, safe];
+      const next = prev.concat(batch);
       // Keep the buffer bounded so a long demo cannot grow without limit.
       return next.length > 600 ? next.slice(next.length - 600) : next;
     });
   }, []);
+
+  const pushEvent = useCallback(
+    (evt: ArenaEvent) => {
+      // Guarantee a stable unique React key even if a frame arrives without an
+      // event_id. Two keyless frames previously collided as duplicate keys.
+      const safe: ArenaEvent = evt.event_id
+        ? evt
+        : {
+            ...evt,
+            event_id: `local_${Date.now()}_${pendingRef.current.length}_${Math.random()
+              .toString(36)
+              .slice(2, 8)}`,
+          };
+      pendingRef.current.push(safe);
+      if (flushRef.current === null) {
+        // A FIXED interval, not requestAnimationFrame.
+        //
+        // rAF still fires up to 60x/second, which under a full campaign is
+        // enough setEvents calls for React to declare a runaway update. A
+        // 100 ms flush hard-caps this at 10 state updates per second no matter
+        // how fast the backend emits, and the arena is paced in hundreds of
+        // milliseconds, so nothing about the demo looks different.
+        flushRef.current = setTimeout(flushEvents, 100) as unknown as number;
+      }
+    },
+    [flushEvents],
+  );
+
+  // Never leave buffered frames behind on unmount.
+  useEffect(
+    () => () => {
+      if (flushRef.current !== null) clearTimeout(flushRef.current);
+    },
+    [],
+  );
 
   // ---- websocket lifecycle -------------------------------------------------
   useEffect(() => {

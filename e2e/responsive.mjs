@@ -14,7 +14,7 @@
  *   node e2e/responsive.mjs
  */
 
-import { BASE, ROUTES, goto, launch, reporter } from './_harness.mjs';
+import { BASE, ROUTES, gotoWithStatus, launch, reporter } from './_harness.mjs';
 
 const VIEWPORTS = [
   { w: 390, h: 844, name: 'mobile' },   // iPhone 15
@@ -80,7 +80,14 @@ for (const vp of VIEWPORTS) {
   for (const route of ROUTES) {
     let result;
     try {
-      await goto(page, route);
+      const status = await gotoWithStatus(page, route);
+      if (status !== null && status >= 400) {
+        // Without this, a 404 page scores a clean pass: it has no wide content
+        // to overflow. A stale dev server once returned 404 on 17 of 18 routes
+        // and this suite still reported 72/72.
+        report.fail(`${vp.name} ${route}`, `HTTP ${status} — route did not render`);
+        continue;
+      }
       result = await page.evaluate(measureOverflow);
     } catch (e) {
       report.fail(`${vp.name} ${route}`, String(e).slice(0, 90));

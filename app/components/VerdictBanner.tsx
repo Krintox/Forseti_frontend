@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Eye, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useArena } from '../lib/ArenaProvider';
 import { inr } from '../lib/api';
 
@@ -116,6 +116,8 @@ export function VerdictBanner() {
       ? clauses[0]
       : `${clauses.slice(0, -1).join(', ')} and ${clauses[clauses.length - 1]}`;
 
+  const deceptionOnly = outcome === 'DECEPTION_FLAGGED_AUTHORITY_INTACT';
+
   const tone =
     outcome === 'CONTAINED'
       ? paradox
@@ -123,12 +125,15 @@ export function VerdictBanner() {
         : 'blue'
       : outcome === 'UNCHECKED_BREACH'
         ? 'rose'
-        : 'slate';
+        : deceptionOnly
+          ? 'amber'
+          : 'slate';
 
   const ring = {
     emerald: 'border-emerald-300 bg-gradient-to-r from-emerald-50 via-white to-emerald-50',
     blue: 'border-blue-300 bg-gradient-to-r from-blue-50 via-white to-blue-50',
     rose: 'border-rose-300 bg-gradient-to-r from-rose-50 via-white to-rose-50',
+    amber: 'border-amber-300 bg-gradient-to-r from-amber-50 via-white to-amber-50',
     slate: 'border-slate-200 bg-slate-50',
   }[tone];
 
@@ -147,6 +152,8 @@ export function VerdictBanner() {
               <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600" />
             ) : outcome === 'UNCHECKED_BREACH' ? (
               <ShieldAlert className="h-5 w-5 shrink-0 text-rose-600" />
+            ) : deceptionOnly ? (
+              <Eye className="h-5 w-5 shrink-0 text-amber-600" />
             ) : (
               <CheckCircle2 className="h-5 w-5 shrink-0 text-slate-500" />
             )}
@@ -155,7 +162,9 @@ export function VerdictBanner() {
                 ? 'Contained'
                 : outcome === 'UNCHECKED_BREACH'
                   ? 'Breached — no global check'
-                  : 'No violation'}
+                  : deceptionOnly
+                    ? 'Deception flagged'
+                    : 'No violation'}
             </p>
           </div>
 
@@ -217,7 +226,34 @@ export function VerdictBanner() {
           </p>
         )}
 
-        {outcome === 'WITHIN_AUTHORITY' && (
+        {deceptionOnly && (
+          <p className="mt-3 text-[11px] leading-relaxed text-amber-900">
+            <span className="font-bold">Detected, and deliberately not contained.</span> The
+            Deception Lab flagged the input, and the payment still went through — correctly,
+            because it breached no dimension of the grant. That is the stronger claim: the field
+            this attack targets is never read by any invariant, firewall check or cost-governor
+            decision, so it could not have changed the outcome even unflagged. Containment quality
+            is 0.00 here because nothing needed containing.
+          </p>
+        )}
+
+        {outcome === 'WITHIN_AUTHORITY' && maxMl !== null && maxMl >= 0.5 && (
+          <p className="mt-2.5 text-[12px] leading-relaxed text-slate-700">
+            <span className="font-bold">
+              No dimension of the grant was exceeded, and the model flagged it anyway
+              ({(maxMl * 100).toFixed(1)}%).
+            </span>{' '}
+            Both statements are true and neither overrides the other. The invariants are arithmetic
+            over what the principal authorised, and this spend stayed inside it — so FORSETI does
+            not intervene. The classifier is reading behavioural shape (transaction velocity,
+            deviation from the rail's own mean), which is a genuine signal and not a breach of
+            authority. A probability is not a violation, and treating it as one is how a
+            spend-control system starts declining legitimate commerce. This is the case for having
+            both, and for keeping them separate.
+          </p>
+        )}
+
+        {outcome === 'WITHIN_AUTHORITY' && !(maxMl !== null && maxMl >= 0.5) && (
           <p className="mt-2.5 text-[12px] leading-relaxed text-slate-700">
             The agent stayed inside every dimension of the grant, so nothing fired. This is the
             system working, not a miss — FORSETI only intervenes when delegated authority is

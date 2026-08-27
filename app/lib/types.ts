@@ -293,7 +293,14 @@ export interface RoundResult {
   pqc_audit: any;
   pqc_tamper_tests: any;
   winner: 'RED' | 'BLUE' | 'NONE';
-  outcome?: 'CONTAINED' | 'UNCHECKED_BREACH' | 'WITHIN_AUTHORITY';
+  /**
+   * DECEPTION_FLAGGED_AUTHORITY_INTACT is detected-but-NOT-contained: the
+   * Deception Lab caught the input and the transaction still proceeded, because
+   * it breached no dimension of the grant. Saying that precisely is a stronger
+   * claim than "contained" - the deceptive field could not have changed the
+   * outcome even undetected, since no authorization path reads it.
+   */
+  outcome?: 'CONTAINED' | 'UNCHECKED_BREACH' | 'WITHIN_AUTHORITY' | 'DECEPTION_FLAGGED_AUTHORITY_INTACT';
   detected: boolean;
   next_red_plan: any;
   adaptation_history: any[];

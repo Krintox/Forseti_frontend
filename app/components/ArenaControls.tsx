@@ -83,10 +83,18 @@ export function ArenaControls() {
     if (ceiling) setLimitInput(String(Math.round(ceiling)));
   }, [ceiling]);
 
+  // Depend on a VALUE, not on the array's identity.
+  //
+  // `permitted_rails` is re-parsed from JSON on every state poll, so it is a
+  // fresh array object each time even when the rails have not changed. React
+  // compares deps with Object.is, so the effect re-ran, called setSelectedRails
+  // with yet another new array, re-rendered, and went round again - "Maximum
+  // update depth exceeded" on /arena, and only under load, because the SSE
+  // stream is what makes state churn fast enough to hit the limit.
+  const permittedRailsKey = (state?.authority_state?.permitted_rails ?? []).join(',');
   useEffect(() => {
-    const permitted = state?.authority_state?.permitted_rails;
-    if (permitted && permitted.length) setSelectedRails(permitted);
-  }, [state?.authority_state?.permitted_rails]);
+    if (permittedRailsKey) setSelectedRails(permittedRailsKey.split(','));
+  }, [permittedRailsKey]);
 
   const toggleRail = (key: string) =>
     setSelectedRails((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -307,7 +315,7 @@ export function ArenaControls() {
           })}
         </div>
         <p className="mt-1.5 text-[9.5px] leading-relaxed text-slate-400">
-          Each vector targets one dimension of the delegated authority — amount is only one of six.
+          Each vector targets one dimension of the delegated authority — amount is only one of seven.
         </p>
 
         <div className="mt-3 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">

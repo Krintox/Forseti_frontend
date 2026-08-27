@@ -99,7 +99,13 @@ export default function DefenseCenterPage() {
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Invariants enforced" value={registry.length} hint="one per authority dimension" />
+        <Stat
+          label="Invariants enforced"
+          value={registry.length}
+          hint={`${registry.filter((r) => r.kind !== 'policy_state').length} authority dimensions + ${
+            registry.filter((r) => r.kind === 'policy_state').length
+          } policy state`}
+        />
         <Stat label="Violations this session" value={violations.length} tone={violations.length ? 'danger' : 'default'} />
         <Stat label="Containment actions" value={containments.length} tone="success" />
         <Stat label="Response levels" value={ACTIONS.length} hint="block is the last resort" />

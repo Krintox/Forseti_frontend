@@ -1,7 +1,7 @@
 # FORSETI end-to-end checks
 
 Two headless-browser suites that run against a **live** stack (backend on
-`:8000`, frontend dev or production server on `:3001`). They exist because the
+`:8000`, frontend dev or production server on `:3005`). They exist because the
 repository had 341 backend tests and nothing at all covering the surface a judge
 actually touches — and the first run of them found four real defects that no
 backend test could have caught:
@@ -20,17 +20,17 @@ backend test could have caught:
 cd backend && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 # 2. frontend
-cd frontend && npm run dev          # serves :3001
+cd frontend && npm run dev          # serves :3005
 
 # 3. checks
 cd frontend
 node e2e/responsive.mjs             # 72 checks: 18 routes x 4 viewports, overflow + console errors
-node e2e/functional.mjs             # 39 checks: content, live SSE, a real attack, a real campaign
+node e2e/functional.mjs             # 44 checks: content, live SSE, a real attack, a real campaign
 ```
 
 Both exit non-zero on failure, so they can gate a build.
 
-Set `BASE` to point at another origin (default `http://localhost:3001`) and
+Set `BASE` to point at another origin (default `http://localhost:3005`) and
 `PW_EXECUTABLE` to a specific Chromium binary if Playwright's default download
 is not present.
 

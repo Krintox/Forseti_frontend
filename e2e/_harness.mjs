@@ -80,7 +80,7 @@ export async function launch() {
   return chromium.launch(executablePath ? { executablePath } : {});
 }
 
-export const BASE = process.env.BASE || 'http://localhost:3001';
+export const BASE = process.env.BASE || 'http://localhost:3005';
 
 /** Every page in the app. The nav is the contract; nothing here may 404. */
 export const ROUTES = [
@@ -116,12 +116,25 @@ export function reporter() {
   };
 }
 
-/** Navigates, tolerating a slow first compile in dev mode. */
-export async function goto(page, route) {
+/**
+ * Navigates, tolerating a slow first compile in dev mode, and returns the HTTP
+ * status so callers can tell "rendered fine" from "rendered a 404 page".
+ *
+ * Returns null when Playwright gives no response object (same-document
+ * navigations), which callers should treat as "unknown, carry on".
+ */
+export async function gotoWithStatus(page, route) {
+  let response = null;
   try {
-    await page.goto(BASE + route, { waitUntil: 'networkidle', timeout: 45000 });
+    response = await page.goto(BASE + route, { waitUntil: 'networkidle', timeout: 45000 });
   } catch {
-    await page.goto(BASE + route, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    response = await page.goto(BASE + route, { waitUntil: 'domcontentloaded', timeout: 20000 });
   }
   await page.waitForTimeout(800);
+  return response ? response.status() : null;
+}
+
+/** Navigates and ignores the status. Prefer gotoWithStatus in new checks. */
+export async function goto(page, route) {
+  await gotoWithStatus(page, route);
 }

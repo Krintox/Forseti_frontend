@@ -181,11 +181,11 @@ function ArenaView() {
                       calibrated fraud probability · backend {lastMl.payload?.backend} · threshold{' '}
                       {lastMl.payload?.threshold}
                     </p>
-                    <InfoNote>
-                      A low score here is expected and honest: a single cross-rail leg genuinely
-                      looks like ordinary spending. That is the measured reason the deterministic
-                      DTL invariant exists.
-                    </InfoNote>
+                    <MlScoreNote
+                      probability={lastMl.payload?.probability ?? 0}
+                      threshold={lastMl.payload?.threshold}
+                      provenance={lastMl.payload?.confidence_provenance}
+                    />
                   </>
                 ) : (
                   <p className="text-xs font-semibold text-amber-700">
@@ -307,7 +307,18 @@ function ArenaView() {
                           : '—'
                       }
                     />
-                    <Field label="Chain score" value={killChain.attack_chain_score.toFixed(2)} />
+                    {/* "Chain score 0.26" says nothing about what it measures
+                        or which direction is good. It is a DEFENCE score built
+                        from two magnitudes, and both are already in the payload
+                        - so show the arithmetic instead of a bare number. */}
+                    <Field
+                      label="Containment quality"
+                      value={`${killChain.attack_chain_score.toFixed(2)} / 1.00`}
+                      hint={
+                        `0.60 x ${killChain.exposure_prevented_share.toFixed(2)} exposure denied  +  ` +
+                        `0.40 x ${killChain.earliness_share.toFixed(2)} earliness`
+                      }
+                    />
                     <Field
                       label="Exposure prevented"
                       value={inr(killChain.economic_exposure_prevented_inr)}
@@ -366,10 +377,13 @@ function Field({
   label,
   value,
   tone = 'default',
+  hint,
 }: {
   label: string;
   value: React.ReactNode;
   tone?: 'default' | 'danger' | 'success';
+  /** Optional second line: use it to show how a composite number was built. */
+  hint?: string;
 }) {
   const toneClass =
     tone === 'danger' ? 'text-rose-600' : tone === 'success' ? 'text-emerald-600' : 'text-slate-900';
@@ -377,6 +391,7 @@ function Field({
     <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5">
       <dt className="text-[9px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
       <dd className={`mt-0.5 font-mono text-[12px] font-bold ${toneClass}`}>{value}</dd>
+      {hint && <p className="mt-0.5 font-mono text-[8.5px] leading-tight text-slate-400">{hint}</p>}
     </div>
   );
 }
@@ -386,5 +401,73 @@ export default function ArenaPage() {
     <Suspense fallback={<p className="text-xs text-slate-400">Loading arena…</p>}>
       <ArenaView />
     </Suspense>
+  );
+}
+
+
+/**
+ * The caption under the live ML score.
+ *
+ * This used to be one unconditional sentence: "a low score here is expected and
+ * honest." That was true while a leak in the generator kept the model from ever
+ * learning the aggregate — it scored cross-rail legs near zero. After the leak
+ * was fixed the model has `exposure_after_tx_ratio` and scores those same legs
+ * HIGH, so the note sat directly underneath a 100.0% reading and contradicted
+ * it.
+ *
+ * A caption that argues with the number above it is worse than no caption, so
+ * this one reads the score. Both branches are honest and both make the same
+ * point about what the invariant is for.
+ */
+function MlScoreNote({
+  probability,
+  threshold,
+  provenance,
+}: {
+  probability: number;
+  threshold?: number;
+  /** Why the score is what it is — see confidence_provenance() in inference.py. */
+  provenance?: { in_deterministic_region?: boolean; exposure_after_tx_ratio?: number; note?: string };
+}) {
+  const cut = typeof threshold === 'number' ? threshold : 0.5;
+
+  // A calibrated 1.0000 invites "your model is overconfident". The honest
+  // answer is narrower: above the ceiling the model is agreeing with
+  // arithmetic the invariant already did.
+  if (provenance?.in_deterministic_region) {
+    return (
+      <InfoNote>
+        <span className="font-bold">
+          This score is arithmetic agreeing with arithmetic, not independent evidence.
+        </span>{' '}
+        The transaction takes exposure to{' '}
+        <span className="font-mono">{(provenance.exposure_after_tx_ratio ?? 0).toFixed(2)}x</span>{' '}
+        the delegated ceiling — definitionally a breach, which is what{' '}
+        <span className="font-mono">INV_01</span> checks. The training labels reflect that, so a
+        calibrated model saturates near 1.0 here. The model earns its keep{' '}
+        <em>below</em> the ceiling, where behaviour is the only signal and no invariant settles
+        the case.
+      </InfoNote>
+    );
+  }
+
+  if (probability >= cut) {
+    return (
+      <InfoNote>
+        The model is scoring this leg high, and it is worth being precise about why: it can see{' '}
+        <span className="font-mono">exposure_after_tx_ratio</span>, its top SHAP driver. Given that
+        feature it reaches 0.828 recall on cross-rail splitting even with the family withheld from
+        training. The deterministic invariant reaches 0.844 <em>and</em> the identical 0.844 with
+        the family seen — equal by construction, because arithmetic over the grant has no
+        parameter for training data to move. That equality is the argument, not the score.
+      </InfoNote>
+    );
+  }
+  return (
+    <InfoNote>
+      A low score here is the honest case for the invariant: without a cross-rail view a single leg
+      genuinely looks like ordinary spending — a model with no aggregate feature reaches only 0.172
+      recall on this family. The deterministic check does not depend on having seen it.
+    </InfoNote>
   );
 }
