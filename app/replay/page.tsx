@@ -140,7 +140,7 @@ export default function ReplayPage() {
                 event {Math.min(cursor, timeline.length)} / {timeline.length}
               </span>
               <span>
-                {currentEvent ? `+${((currentEvent.offset_ms ?? 0) / 1000).toFixed(2)}s` : '—'}
+                {currentEvent ? `+${((currentEvent.offset_ms ?? 0) / 1000).toFixed(2)}s` : '-'}
               </span>
             </div>
           </div>

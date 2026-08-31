@@ -42,8 +42,8 @@ export default function ThreatIntelPage() {
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Researched vectors" value={summary?.total_vectors ?? '—'} />
-        <Stat label="Executable" value={summary?.implemented_count ?? '—'} tone="success" />
+        <Stat label="Researched vectors" value={summary?.total_vectors ?? '-'} />
+        <Stat label="Executable" value={summary?.implemented_count ?? '-'} tone="success" />
         <Stat label="High agentic relevance" value={agenticVectors.length} tone="warning" />
         <Stat label="Critical severity" value={stats.bySeverity.CRITICAL ?? 0} tone="danger" />
       </div>
@@ -54,7 +54,7 @@ export default function ThreatIntelPage() {
             {Object.entries(summary?.count_by_channel ?? {}).map(([code, count]: any) => (
               <li key={code} className="flex items-center gap-3">
                 <span className="w-52 shrink-0 truncate text-[11px] font-semibold text-slate-700">
-                  {code} — {summary?.channels?.[code]}
+                  {code}, {summary?.channels?.[code]}
                 </span>
                 <div className="h-3.5 flex-1 overflow-hidden rounded-full bg-slate-100">
                   <div
@@ -73,7 +73,7 @@ export default function ThreatIntelPage() {
             {Object.entries(summary?.count_by_surface ?? {}).map(([code, count]: any) => (
               <li key={code} className="flex items-center gap-3">
                 <span className="w-52 shrink-0 truncate text-[11px] font-semibold text-slate-700">
-                  {code} — {summary?.surfaces?.[code]}
+                  {code}, {summary?.surfaces?.[code]}
                 </span>
                 <div className="h-3.5 flex-1 overflow-hidden rounded-full bg-slate-100">
                   <div

@@ -67,7 +67,7 @@ export default function AttackSimulatorPage() {
     <>
       <PageHeader
         title="Attack Simulator & Explorer"
-        description="17 vectors are implemented and execute against the live simulator. The rest of the catalogue is researched landscape, not coverage — every card says which it is, and whether the row is even about delegated agent authority."
+        description="17 vectors are implemented and execute against the live simulator. The rest of the catalogue is researched landscape, not coverage, every card says which it is, and whether the row is even about delegated agent authority."
       >
         {summary && (
           <>
@@ -169,7 +169,7 @@ export default function AttackSimulatorPage() {
                 </>
               ) : (
                 <p className="text-[10px] font-semibold text-slate-400">
-                  Identify layer only — not executed by this prototype.
+                  Identify layer only, not executed by this prototype.
                 </p>
               )}
             </div>
@@ -203,7 +203,7 @@ function Select({
       >
         {options.map((o) => (
           <option key={o} value={o}>
-            {o === 'ALL' ? 'All' : labels?.[o] ? `${o} — ${labels[o]}` : o}
+            {o === 'ALL' ? 'All' : labels?.[o] ? `${o}, ${labels[o]}` : o}
           </option>
         ))}
       </select>

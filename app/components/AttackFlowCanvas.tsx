@@ -125,8 +125,8 @@ export function AttackFlowCanvas({ onNodeClick }: { onNodeClick?: (nodeId: strin
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
             {strategy
-              ? `${strategy.replace(/_/g, ' ')} — step ${currentStep}${totalSteps ? ` of ${totalSteps}` : ''}`
-              : 'Idle — launch a round to stream live backend events'}
+              ? `${strategy.replace(/_/g, ' ')}, step ${currentStep}${totalSteps ? ` of ${totalSteps}` : ''}`
+              : 'Idle. Launch a round to stream live backend events'}
             {onNodeClick && <span className="ml-1.5 text-slate-400">· click any box to explain it</span>}
           </p>
         </div>

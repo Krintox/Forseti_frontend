@@ -10,7 +10,7 @@ import { API_BASE, api, inr, num } from '../lib/api';
  * AI Studio: every agent is runnable here against live state.
  *
  * Each result shows which provider answered and whether it is model output, a
- * deterministic fallback, or an honest failure — so nothing on this page can be
+ * deterministic fallback, or an honest failure, so nothing on this page can be
  * mistaken for an enforced decision.
  */
 
@@ -43,7 +43,7 @@ export default function AiStudioPage() {
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Agents" value={status?.agent_count ?? '—'} hint="each solves a named production problem" />
+        <Stat label="Agents" value={status?.agent_count ?? '-'} hint="each solves a named production problem" />
         <Stat label="Providers" value={llm?.providers_configured ?? 0} hint="fallback chain, tier ordered" />
         <Stat label="API keys" value={llm?.keys_configured ?? 0} hint={`${llm?.keys_live ?? 0} still live`} />
         <Stat
@@ -159,7 +159,7 @@ function DeterministicAppendixBlock({ data }: { data: any }) {
         Cross-module facts (not from the model)
       </p>
       <dl className="mt-1 space-y-0.5">
-        <KV k="Kill-chain stage" v={data.kill_chain_stage ?? '—'} />
+        <KV k="Kill-chain stage" v={data.kill_chain_stage ?? '-'} />
         <KV k="Attack chain score" v={num(data.attack_chain_score, 2)} />
         <KV
           k="Intent Firewall hard-drift"
@@ -364,7 +364,7 @@ function ResultBody({ agent, data, extra }: { agent: string; data: any; extra?: 
           <p className="text-[11px] text-slate-700">{data.app_notification.body}</p>
         </div>
         <div className="rounded-lg border border-slate-200 p-2">
-          <p className="text-[9.5px] font-bold uppercase text-slate-500">Email — {data.email_subject}</p>
+          <p className="text-[9.5px] font-bold uppercase text-slate-500">Email, {data.email_subject}</p>
           <p className="mt-1 whitespace-pre-line text-[11px] leading-relaxed text-slate-700">{data.email_body}</p>
         </div>
       </div>
@@ -472,7 +472,7 @@ function CartAuditor() {
       run={run} result={r} busy={busy}
     >
       <p className="text-[11px] text-slate-600">
-        A compliant grocery MCC with ₹7,800 of gift cards in the basket — the exact shape of
+        A compliant grocery MCC with ₹7,800 of gift cards in the basket, the exact shape of
         intent laundering.
       </p>
     </AgentCard>
@@ -549,8 +549,8 @@ function RedStrategist() {
       run={run} result={r} busy={busy}
     >
       <p className="text-[11px] text-slate-600">
-        Reads what the defence has already caught, then proposes parameters. The simulator — not
-        the model — executes and judges them.
+        Reads what the defence has already caught, then proposes parameters. The simulator, not
+        the model, executes and judges them.
       </p>
     </AgentCard>
   );

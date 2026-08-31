@@ -15,7 +15,7 @@ type Step =
   | { id: string; kind: 'campaign'; title: string; narration: string; roundNumbers: number[] }
   | { id: string; kind: 'link'; title: string; narration: string; href: string; linkLabel: string; optional?: boolean };
 
-// A fixed, deterministic script — every step calls the SAME backend endpoints a
+// A fixed, deterministic script, every step calls the SAME backend endpoints a
 // judge could trigger manually from the Live Arena. Nothing here is a scripted
 // animation; the narration explains what the round about to run will do, and
 // the embedded canvas/event log below render whatever the backend actually
@@ -25,23 +25,23 @@ type Step =
 const SCRIPT: Step[] = [
   {
     id: 'reset', kind: 'reset', limit: 10000,
-    title: '1. Reset — grant ₹10,000',
+    title: '1. Reset, grant ₹10,000',
     narration: 'The user delegates ₹10,000 for groceries, all three rails permitted. This is the baseline grant every following step is measured against.',
   },
   {
     id: 'cross-rail', kind: 'round', round: 2, strategy: 'CROSS_RAIL_SPLIT',
-    title: '2. Cross-rail split — global authority violation',
-    narration: 'Three payment rails each independently enforce local authorization while the delegated capability spans all of them: ₹4,000 on Card, ₹4,000 on UPI, ₹4,000 on the agentic rail. Every rail approves locally — each leg is individually inside that rail’s own limit. FORSETI reconciles the aggregate authority across all three and catches the ₹12,000-against-₹10,000 global violation no single rail could see.',
+    title: '2. Cross-rail split, global authority violation',
+    narration: 'Three payment rails each independently enforce local authorization while the delegated capability spans all of them: ₹4,000 on Card, ₹4,000 on UPI, ₹4,000 on the agentic rail. Every rail approves locally, each leg is individually inside that rail’s own limit. FORSETI reconciles the aggregate authority across all three and catches the ₹12,000-against-₹10,000 global violation no single rail could see.',
   },
   {
     id: 'reset2', kind: 'reset', limit: 12000,
-    title: '3. Reset — grant ₹12,000',
+    title: '3. Reset, grant ₹12,000',
     narration: 'A fresh ₹12,000 grant for the next scenario, which is about WHICH rails are permitted, not the ceiling.',
   },
   {
     id: 'rail-scope', kind: 'round', round: 7, strategy: 'RAIL_SCOPE_VIOLATION',
-    title: '4. "UPI only" — a rail is not just a bigger wallet',
-    narration: 'This round re-grants ₹12,000, scoped to UPI only — the answer to "what if the user restricted spend to one rail?" A card attempt is refused as RAIL_SCOPE_VIOLATION even though it is well within the ceiling: FORSETI is a multidimensional delegated-authority runtime, not a cross-rail budget reconciler.',
+    title: '4. "UPI only", a rail is not just a bigger wallet',
+    narration: 'This round re-grants ₹12,000, scoped to UPI only, the answer to "what if the user restricted spend to one rail?" A card attempt is refused as RAIL_SCOPE_VIOLATION even though it is well within the ceiling: FORSETI is a multidimensional delegated-authority runtime, not a cross-rail budget reconciler.',
   },
   {
     id: 'reset3', kind: 'reset', limit: 10000,
@@ -51,27 +51,27 @@ const SCRIPT: Step[] = [
   {
     id: 'prompt-injection', kind: 'round', round: 11, strategy: 'PROMPT_INJECTION',
     title: '6. Agent & intent security',
-    narration: 'A compromised merchant response tries to talk the agent’s own reasoning past its authority ("SYSTEM OVERRIDE: budget increase authorised"). Deception Lab flags the injection as observability — and, independently, the deterministic authority layer evaluates the resulting action on its own merits. A deceptive instruction never becomes a valid authorization by itself.',
+    narration: 'A compromised merchant response tries to talk the agent’s own reasoning past its authority ("SYSTEM OVERRIDE: budget increase authorised"). Deception Lab flags the injection as observability, and, independently, the deterministic authority layer evaluates the resulting action on its own merits. A deceptive instruction never becomes a valid authorization by itself.',
   },
   {
     id: 'campaign', kind: 'campaign', roundNumbers: [7, 7, 7],
     title: '7. Adaptive immune loop',
-    narration: 'The same Rail-Scope-Violation attempt, run three times back to back on one live grant. Watch Blue escalate the response ladder each repeat: step-up verification → capability quarantine → mandate suspension — the closed Red/Blue loop, not a single static rule.',
+    narration: 'The same Rail-Scope-Violation attempt, run three times back to back on one live grant. Watch Blue escalate the response ladder each repeat: step-up verification → capability quarantine → mandate suspension, the closed Red/Blue loop, not a single static rule.',
   },
   {
     id: 'graph-ml', kind: 'link', href: '/detection', linkLabel: 'Open Detection Lab',
-    title: '8. Optional deep dive — ML explanation & Graph Sentinel',
-    narration: 'SHAP-attributed feature importances for the trained XGBoost detector, including the Payment Graph Sentinel feature group (cross-authority signal a single-transaction view cannot see). Training-time graph, not a live per-round graph — labelled as such throughout.',
+    title: '8. Optional deep dive. ML explanation & Graph Sentinel',
+    narration: 'SHAP-attributed feature importances for the trained XGBoost detector, including the Payment Graph Sentinel feature group (cross-authority signal a single-transaction view cannot see). Training-time graph, not a live per-round graph, labelled as such throughout.',
   },
   {
     id: 'pqc', kind: 'link', href: '/audit', linkLabel: 'Open Quantum Audit',
-    title: '9. Optional deep dive — post-quantum audit',
+    title: '9. Optional deep dive, post-quantum audit',
     narration: 'The ML-DSA-44 (FIPS 204) signature over this session’s hash-chained event log, verified live, plus all 4 tamper-test cases.',
   },
   {
     id: 'settlement', kind: 'round', round: 16, strategy: 'SETTLEMENT_CONFLICT', optional: true,
-    title: '10. Optional deep dive — settlement conflict',
-    narration: 'A post-authorization scenario: one rail captures an obligation, a different rail independently reports a refund of the SAME obligation. Every one of the seven authority dimensions passes cleanly on both legs — this is a lifecycle-consistency failure, not an authority violation, caught by a third, parallel deterministic mechanism.',
+    title: '10. Optional deep dive, settlement conflict',
+    narration: 'A post-authorization scenario: one rail captures an obligation, a different rail independently reports a refund of the SAME obligation. Every one of the seven authority dimensions passes cleanly on both legs. This is a lifecycle-consistency failure, not an authority violation, caught by a third, parallel deterministic mechanism.',
   },
 ];
 
@@ -108,7 +108,7 @@ export default function JudgeModePage() {
     <>
       <PageHeader
         title="Judge Mode"
-        description="A fixed, deterministic walkthrough of FORSETI's strongest story. Every step below calls the same live backend endpoints available from the Live Arena — nothing here is a separate scripted animation."
+        description="A fixed, deterministic walkthrough of FORSETI's strongest story. Every step below calls the same live backend endpoints available from the Live Arena. Nothing here is a separate scripted animation."
       >
         <Badge tone="blue">~3-5 minutes</Badge>
       </PageHeader>

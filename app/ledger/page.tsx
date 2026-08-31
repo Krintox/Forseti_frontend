@@ -69,7 +69,7 @@ export default function DelegationLedgerPage() {
                     </span>
                   ))}
                   {(auth?.permitted_rails ?? []).length === 0 && (
-                    <span className="text-[11px] text-slate-400">none — every rail refused</span>
+                    <span className="text-[11px] text-slate-400">none, every rail refused</span>
                   )}
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function DelegationLedgerPage() {
                   Economic purpose
                 </p>
                 <p className="mt-1.5 text-[11px] italic text-slate-600">
-                  {auth?.economic_purpose || '—'}
+                  {auth?.economic_purpose || '-'}
                 </p>
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function DelegationLedgerPage() {
               />
               <Row
                 label="Validity window"
-                value={auth?.validity_window_hours != null ? `${auth.validity_window_hours}h` : '—'}
+                value={auth?.validity_window_hours != null ? `${auth.validity_window_hours}h` : '-'}
               />
             </dl>
           </Card>
@@ -175,7 +175,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="text-slate-500">{label}</dt>
-      <dd className="min-w-0 break-all font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
+      <dd className="min-w-0 break-all font-mono font-semibold text-slate-800">{value ?? '-'}</dd>
     </div>
   );
 }

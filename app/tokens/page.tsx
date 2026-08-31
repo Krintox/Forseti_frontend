@@ -95,14 +95,14 @@ export default function TokensPage() {
     <>
       <PageHeader
         title="Payment Tokenization"
-        description="A synthetic scoped-token model that demonstrates how tokenized payment credentials can inherit and enforce delegated authority — not an implementation of any real network's token vault."
+        description="A synthetic scoped-token model that demonstrates how tokenized payment credentials can inherit and enforce delegated authority, not an implementation of any real network's token vault."
       >
         <Badge tone="slate">TOKEN SCOPE → DTL AUTHORITY → PAYMENT ACTION</Badge>
       </PageHeader>
 
       <InfoNote>
         A token's scope is clamped to the live delegation at issuance, and every use is
-        independently re-checked against the delegation&apos;s <em>current</em> state — a token minted
+        independently re-checked against the delegation&apos;s <em>current</em> state, a token minted
         while the grant was generous cannot outlive that grant being tightened or revoked. Try
         issuing a token, then narrowing the delegated authority on the{' '}
         <a href="/ledger" className="underline">Delegation Ledger</a> before testing a use.
@@ -208,7 +208,7 @@ export default function TokensPage() {
                     <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                       <p className="text-[11px] font-semibold text-emerald-800">
-                        ALLOWED — inside token scope and inside the live DTL authority.
+                        ALLOWED. Inside token scope and inside the live DTL authority.
                       </p>
                     </div>
                   ) : (

@@ -22,7 +22,7 @@ export default function AgentsPage() {
     <>
       <PageHeader
         title="Agents"
-        description="The closed loop. The Red agent scores every strategy from outcomes it has actually observed and picks the argmax; the Blue system hardens policy in response. Selection is deterministic — no LLM — so the demo is reproducible."
+        description="The closed loop. The Red agent scores every strategy from outcomes it has actually observed and picks the argmax; the Blue system hardens policy in response. Selection is deterministic, no LLM, so the demo is reproducible."
       >
         <button
           type="button"
@@ -45,7 +45,7 @@ export default function AgentsPage() {
             </div>
             <div className="min-w-0">
               <p className="text-[13px] font-bold text-slate-900">
-                Next strategy: {String(plan?.next_strategy ?? '—').replace(/_/g, ' ')}
+                Next strategy: {String(plan?.next_strategy ?? '-').replace(/_/g, ' ')}
               </p>
               <p className="mt-1 text-[11px] leading-relaxed text-slate-600">{plan?.reasoning}</p>
               <p className="mt-2 font-mono text-[10px] text-slate-500">
@@ -94,7 +94,7 @@ export default function AgentsPage() {
 
       <Card
         title="Strategy scoring table"
-        subtitle="How the Red agent ranks its options right now — derived from observed containment, not hardcoded"
+        subtitle="How the Red agent ranks its options right now. Derived from observed containment, not hardcoded"
       >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[860px] text-left text-xs">
@@ -139,7 +139,7 @@ export default function AgentsPage() {
               <li key={i} className="rounded-xl border border-slate-200 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[12px] font-bold text-slate-900">
-                    Round {r.round_id} — {String(r.strategy).replace(/_/g, ' ')}
+                    Round {r.round_id}, {String(r.strategy).replace(/_/g, ' ')}
                   </span>
                   <Badge tone={r.is_detected ? 'green' : 'red'}>
                     {r.is_detected ? 'Contained' : 'Not contained'}

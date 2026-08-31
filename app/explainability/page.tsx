@@ -23,7 +23,7 @@ export default function ExplainabilityPage() {
     <>
       <PageHeader
         title="Explainability"
-        description="Attributions come from shap.TreeExplainer running against the trained model. If genuine SHAP were unavailable the page would say so and label the fallback differently — it would never be called SHAP."
+        description="Attributions come from shap.TreeExplainer running against the trained model. If genuine SHAP were unavailable the page would say so and label the fallback differently. It would never be called SHAP."
       >
         <Badge tone={explain?.is_genuine_shap ? 'green' : 'amber'}>
           {explain?.is_genuine_shap ? 'Genuine SHAP' : String(explain?.method ?? 'unavailable')}
@@ -157,7 +157,7 @@ export default function ExplainabilityPage() {
           </>
         ) : (
           <p className="text-xs text-slate-400">
-            No live explanation yet — run an attack in the Live Arena and it will appear here.
+            No live explanation yet. Run an attack in the Live Arena and it will appear here.
           </p>
         )}
       </Card>
@@ -169,7 +169,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="text-slate-500">{label}</dt>
-      <dd className="font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
+      <dd className="font-mono font-semibold text-slate-800">{value ?? '-'}</dd>
     </div>
   );
 }

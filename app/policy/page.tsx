@@ -9,7 +9,7 @@ import { api, inr } from '../lib/api';
 /**
  * The ladder is served by the backend (`state.policy_ladder`, generated from the
  * DefensePolicy enum). This local list is only a last-resort fallback for a
- * cold/offline state — it is NOT the source of truth. A hand-written copy of the
+ * cold/offline state. It is NOT the source of truth. A hand-written copy of the
  * ladder is exactly what previously dropped AGENT_SUSPENDED, the top rung, so the
  * most severe policy in the system rendered as "no active policy".
  */
@@ -50,7 +50,7 @@ export default function PolicyCenterPage() {
       <div className="grid gap-5 lg:grid-cols-2">
         <Card
           title="Escalation ladder"
-          subtitle="Every policy Blue can climb to, in order of severity — served from the backend enum"
+          subtitle="Every policy Blue can climb to, in order of severity. Served from the backend enum"
         >
           {unknownPolicy && (
             <p className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[10px] font-bold text-rose-700">
@@ -147,7 +147,7 @@ export default function PolicyCenterPage() {
                   />
                   <Row
                     label="All spend suspended"
-                    value={overlay.suspends_all_spend ? 'YES — mandate paused' : 'no'}
+                    value={overlay.suspends_all_spend ? 'YES, mandate paused' : 'no'}
                   />
                   <Row
                     label="SKU attestation required"
@@ -160,7 +160,7 @@ export default function PolicyCenterPage() {
             <div className="mt-3">
               <InfoNote>
                 The ceiling is editable from the Live Arena and the Delegation Ledger. Changing it
-                immediately changes what counts as a violation — the invariant is arithmetic, not a
+                immediately changes what counts as a violation, the invariant is arithmetic, not a
                 tuned threshold.
               </InfoNote>
             </div>
@@ -192,7 +192,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="shrink-0 text-slate-500">{label}</dt>
-      <dd className="min-w-0 break-all text-right font-mono font-semibold text-slate-800">{value || '—'}</dd>
+      <dd className="min-w-0 break-all text-right font-mono font-semibold text-slate-800">{value || '-'}</dd>
     </div>
   );
 }

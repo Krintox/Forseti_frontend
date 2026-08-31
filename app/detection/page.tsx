@@ -133,12 +133,12 @@ export default function DetectionLabPage() {
           right={<Provenance artifact={baselines ?? null} />}
         >
           <BaselineTable
-            title="Condition A — cross-rail split & revocation flood held out of training"
+            title="Condition A. Cross-rail split & revocation flood held out of training"
             block={baselines?.condition_attack_family_holdout?.baselines ?? baselines?.baselines}
           />
           <div className="mt-6">
             <BaselineTable
-              title="Condition B — every attack family seen in training"
+              title="Condition B, every attack family seen in training"
               block={baselines?.condition_all_families_seen?.baselines}
             />
           </div>
@@ -288,9 +288,9 @@ function BaselineTable({ title, block }: { title: string; block: any }) {
                   <td className="py-2 font-mono">
                     {v.per_family_recall?.CROSS_RAIL_SPLIT?.recall !== undefined
                       ? num(v.per_family_recall.CROSS_RAIL_SPLIT.recall, 3)
-                      : '—'}
+                      : '-'}
                   </td>
-                  <td className="py-2 font-mono">{v.latency ? `${num(v.latency.p99_ms, 3)} ms` : '—'}</td>
+                  <td className="py-2 font-mono">{v.latency ? `${num(v.latency.p99_ms, 3)} ms` : '-'}</td>
                   <td className="py-2 font-mono">{inr(v.financial_impact?.net_value_saved_inr)}</td>
                 </tr>
               );
@@ -306,7 +306,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="text-slate-500">{label}</dt>
-      <dd className="font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
+      <dd className="font-mono font-semibold text-slate-800">{value ?? '-'}</dd>
     </div>
   );
 }
@@ -384,18 +384,18 @@ function CrossRailIntervals({ headline }: { headline: any }) {
       <div className="mt-3 space-y-2">
         <Verdict
           holds={Boolean(separationReal)}
-          yes="Aggregate feature vs no aggregate feature: intervals do not overlap — this separation is real."
-          no="Aggregate feature vs no aggregate feature: intervals overlap — this run does not establish the separation."
+          yes="Aggregate feature vs no aggregate feature: intervals do not overlap, this separation is real."
+          no="Aggregate feature vs no aggregate feature: intervals overlap. This run does not establish the separation."
         />
         <Verdict
           holds={!generalisationResolvable}
           yes={`Hybrid ML held-out vs seen: intervals overlap at n=${n}, so this table does NOT prove the classifier generalises to an unseen family. We do not claim it does.`}
-          no={`Hybrid ML held-out vs seen: now separable at n=${n} — the classifier measurably lost ground on the unseen family.`}
+          no={`Hybrid ML held-out vs seen: now separable at n=${n}, the classifier measurably lost ground on the unseen family.`}
           neutralWhenTrue
         />
         <p className="text-[11px] leading-relaxed text-slate-600">
           <span className="font-bold">The invariant&apos;s two columns are equal by construction</span>{' '}
-          — an identity, not a measurement that happened to come out even. That is the property no
+         , an identity, not a measurement that happened to come out even. That is the property no
           sample size can take away, and it is the claim.
         </p>
       </div>

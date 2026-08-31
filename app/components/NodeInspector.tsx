@@ -64,7 +64,7 @@ const NODE_META: Record<string, NodeMeta> = {
   },
   dtl: {
     title: 'FORSETI DTL',
-    kicker: 'Delegation-Trust Ledger — global authority check',
+    kicker: 'Delegation-Trust Ledger, global authority check',
     role: 'The one component that sees every rail at once. It does not just sum a budget: it evaluates the transaction against all seven dimensions of the grant - amount, per-transaction cap, rail, merchant, beneficiary, purpose, time - deterministically, with no ML and no training data required.',
     inputs: 'A transaction plus the live authority state (all rails, all dimensions).',
     outputs: 'A proof naming exactly which dimension(s) were violated, or a clean pass.',
@@ -201,10 +201,10 @@ export function NodeInspector({ nodeId, onClose }: { nodeId: string | null; onCl
                     Model status
                   </p>
                   <dl className="divide-y divide-slate-100">
-                    <Row k="Loaded" v={state.detector_status.model_loaded ? 'yes' : 'no — run training'} />
+                    <Row k="Loaded" v={state.detector_status.model_loaded ? 'yes' : 'no, run training'} />
                     <Row k="Backend" v={state.detector_status.backend} />
                     <Row k="Features" v={String(state.detector_status.feature_count)} />
-                    <Row k="Explainability" v={state.detector_status.explainability_method ?? '—'} />
+                    <Row k="Explainability" v={state.detector_status.explainability_method ?? '-'} />
                     <Row k="Genuine SHAP" v={state.detector_status.is_genuine_shap ? 'yes' : 'no'} />
                   </dl>
                 </div>
@@ -218,7 +218,7 @@ export function NodeInspector({ nodeId, onClose }: { nodeId: string | null; onCl
                   <dl className="divide-y divide-slate-100">
                     <Row k="Algorithm" v={state.pqc_status.algorithm} />
                     <Row k="Available" v={state.pqc_status.available ? 'yes' : 'PQC MODULE UNAVAILABLE'} />
-                    <Row k="Backend" v={state.pqc_status.backend ?? '—'} />
+                    <Row k="Backend" v={state.pqc_status.backend ?? '-'} />
                     <Row k="Signature size" v={`${state.pqc_status.signature_bytes} bytes`} />
                   </dl>
                 </div>
@@ -230,7 +230,7 @@ export function NodeInspector({ nodeId, onClose }: { nodeId: string | null; onCl
                     Current policy
                   </p>
                   <dl className="divide-y divide-slate-100">
-                    <Row k="Active policy" v={state?.active_policy ?? '—'} />
+                    <Row k="Active policy" v={state?.active_policy ?? '-'} />
                   </dl>
                 </div>
               )}
@@ -254,7 +254,7 @@ export function NodeInspector({ nodeId, onClose }: { nodeId: string | null; onCl
                   </p>
                   <dl className="divide-y divide-slate-100">
                     <Row k="Winner" v={winner ?? 'no round completed yet'} />
-                    <Row k="Detected" v={lastRound ? (lastRound.detected ? 'yes' : 'no') : '—'} />
+                    <Row k="Detected" v={lastRound ? (lastRound.detected ? 'yes' : 'no') : '-'} />
                   </dl>
                 </div>
               )}
@@ -282,7 +282,7 @@ export function NodeInspector({ nodeId, onClose }: { nodeId: string | null; onCl
               <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                 <p className="text-[10px] text-slate-500">
                   Everything above is read from the live arena state and event log the backend actually
-                  produced this session — nothing on this panel is a static mockup.
+                  produced this session. Nothing on this panel is a static mockup.
                 </p>
               </div>
             </div>
@@ -340,7 +340,7 @@ function RailFacts({
         <Row k="In this round" v={inr(railTotals[railKey] ?? 0)} />
         <Row
           k="Permitted by the grant"
-          v={permitted ? 'yes' : 'NO — outside delegated rail scope'}
+          v={permitted ? 'yes' : 'NO, outside delegated rail scope'}
         />
       </dl>
     </div>
@@ -353,7 +353,7 @@ function AuthorityVectorTable({ vector }: { vector: Record<string, any> }) {
   return (
     <div className="rounded-xl border border-blue-200 bg-blue-50/40">
       <p className="border-b border-blue-100 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-blue-700">
-        The full authority vector — seven dimensions, not one ceiling
+        The full authority vector, seven dimensions, not one ceiling
       </p>
       <dl className="divide-y divide-blue-100">
         {rows.map((key) => {
@@ -361,7 +361,7 @@ function AuthorityVectorTable({ vector }: { vector: Record<string, any> }) {
           if (!row) return null;
           const granted = Array.isArray(row.granted)
             ? row.granted.join(', ') || 'none'
-            : row.granted ?? (row.granted_hours ? `${row.granted_hours}h` : row.unconstrained ? 'unconstrained' : '—');
+            : row.granted ?? (row.granted_hours ? `${row.granted_hours}h` : row.unconstrained ? 'unconstrained' : '-');
           return (
             <div key={key} className="px-3 py-2">
               <div className="flex items-baseline justify-between gap-2">

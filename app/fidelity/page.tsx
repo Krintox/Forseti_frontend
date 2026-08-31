@@ -43,7 +43,7 @@ export default function FidelityLabPage() {
                 <Card
                   key={key}
                   title={anchor.dataset_name}
-                  subtitle={loaded ? 'Anchor loaded — metrics computed' : 'Anchor not present'}
+                  subtitle={loaded ? 'Anchor loaded, metrics computed' : 'Anchor not present'}
                   right={<Badge tone={loaded ? 'green' : 'amber'}>{loaded ? 'RUN' : 'NOT RUN'}</Badge>}
                 >
                   {loaded ? (

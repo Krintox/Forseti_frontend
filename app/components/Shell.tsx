@@ -152,7 +152,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <main className="mx-auto w-full min-w-0 max-w-[1600px] flex-1 space-y-5 p-3 sm:p-4 lg:p-6">{children}</main>
         <footer className="border-t border-slate-200 px-6 py-3 text-center text-[10px] font-mono text-slate-400">
-          FORSETI — synthetic, standards-inspired payment simulator. No real payment credentials,
+          FORSETI, synthetic, standards-inspired payment simulator. No real payment credentials,
           no production connections. Mastercard Innovation Challenge @ GFF 2026.
         </footer>
       </div>

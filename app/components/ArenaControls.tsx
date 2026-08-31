@@ -315,14 +315,14 @@ export function ArenaControls() {
           })}
         </div>
         <p className="mt-1.5 text-[9.5px] leading-relaxed text-slate-400">
-          Each vector targets one dimension of the delegated authority — amount is only one of seven.
+          Each vector targets one dimension of the delegated authority. Amount is only one of seven.
         </p>
 
         <div className="mt-3 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
           <div>
             <p className="text-[11px] font-bold text-slate-700">DTL defense</p>
             <p className="text-[9.5px] text-slate-500">
-              {dtlEnabled ? 'Global authority check active' : 'Legacy mode — rails act alone'}
+              {dtlEnabled ? 'Global authority check active' : 'Legacy mode, rails act alone'}
             </p>
           </div>
           <button
@@ -419,7 +419,7 @@ export function ArenaControls() {
 
         {state?.detector_status && !state.detector_status.model_loaded && (
           <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-semibold text-amber-800">
-            No trained model loaded — ML scores will report NOT TRAINED. Run{' '}
+            No trained model loaded. ML scores will report NOT TRAINED. Run{' '}
             <code className="font-mono">python -m app.detector.train</code>.
           </p>
         )}

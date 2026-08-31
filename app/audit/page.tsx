@@ -68,7 +68,7 @@ export default function QuantumAuditPage() {
               <div className="mt-3">
                 <InfoNote>
                   ML-DSA is the standardised successor to CRYSTALS-Dilithium. This is a prototype
-                  audit-signing implementation with ephemeral development keys — not an HSM or a
+                  audit-signing implementation with ephemeral development keys, not an HSM or a
                   production key-management system.
                 </InfoNote>
               </div>
@@ -216,7 +216,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="shrink-0 text-slate-500">{label}</dt>
-      <dd className="text-right font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
+      <dd className="text-right font-mono font-semibold text-slate-800">{value ?? '-'}</dd>
     </div>
   );
 }

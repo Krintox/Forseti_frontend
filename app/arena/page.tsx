@@ -48,7 +48,7 @@ function ArenaView() {
     <>
       <PageHeader
         title="Live Security Arena"
-        description="The Red Team executes a real attack against the payment simulator. Every arrow, amount and log line below is produced by a backend event — nothing here is a scripted animation."
+        description="The Red Team executes a real attack against the payment simulator. Every arrow, amount and log line below is produced by a backend event. Nothing here is a scripted animation."
       >
         {strategy && (
           <Badge tone="red">
@@ -61,7 +61,7 @@ function ArenaView() {
             {winner === 'BLUE'
               ? 'Blue team holds'
               : winner === 'NONE'
-                ? 'No violation — within authority'
+                ? 'No violation, within authority'
                 : 'Red team wins'}
           </Badge>
         )}
@@ -99,7 +99,7 @@ function ArenaView() {
                         .map((a) => inr(a))
                         .join(' + ')}
                     </strong>{' '}
-                    {approvedRails.length === 1 ? 'is' : 'are'} individually ordinary — every rail
+                    {approvedRails.length === 1 ? 'is' : 'are'} individually ordinary, every rail
                     below said yes. Whether that is allowed depends on the grant, which only the DTL
                     holds.
                   </>
@@ -189,7 +189,7 @@ function ArenaView() {
                   </>
                 ) : (
                   <p className="text-xs font-semibold text-amber-700">
-                    MODEL NOT TRAINED — no score is shown rather than a placeholder.
+                    MODEL NOT TRAINED, no score is shown rather than a placeholder.
                   </p>
                 )
               ) : (
@@ -249,7 +249,7 @@ function ArenaView() {
                     <p className="mt-2 text-[11px] leading-relaxed text-slate-700">
                       Drifted on{' '}
                       <strong>{lastFirewall.violating_dimensions.join(', ').replace(/_/g, ' ')}</strong>
-                      {' '}— every other dimension stayed inside the grant.
+                      {' '}, every other dimension stayed inside the grant.
                     </p>
                   ) : (
                     <p className="mt-2 text-[11px] text-slate-500">
@@ -281,7 +281,7 @@ function ArenaView() {
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                    Clean — the agent was not fed a false premise this round.
+                    Clean, the agent was not fed a false premise this round.
                   </div>
                 )
               ) : (
@@ -304,7 +304,7 @@ function ArenaView() {
                       value={
                         killChain.detected_at_step != null
                           ? `${killChain.detected_at_step} of ${killChain.steps_attempted}`
-                          : '—'
+                          : '-'
                       }
                     />
                     {/* "Chain score 0.26" says nothing about what it measures
@@ -352,7 +352,7 @@ function ArenaView() {
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                    Consistent — every settlement leg this round agrees with the others.
+                    Consistent, every settlement leg this round agrees with the others.
                   </div>
                 )
               ) : (
@@ -410,7 +410,7 @@ export default function ArenaPage() {
  *
  * This used to be one unconditional sentence: "a low score here is expected and
  * honest." That was true while a leak in the generator kept the model from ever
- * learning the aggregate — it scored cross-rail legs near zero. After the leak
+ * learning the aggregate. It scored cross-rail legs near zero. After the leak
  * was fixed the model has `exposure_after_tx_ratio` and scores those same legs
  * HIGH, so the note sat directly underneath a 100.0% reading and contradicted
  * it.
@@ -426,7 +426,7 @@ function MlScoreNote({
 }: {
   probability: number;
   threshold?: number;
-  /** Why the score is what it is — see confidence_provenance() in inference.py. */
+  /** Why the score is what it is, see confidence_provenance() in inference.py. */
   provenance?: { in_deterministic_region?: boolean; exposure_after_tx_ratio?: number; note?: string };
 }) {
   const cut = typeof threshold === 'number' ? threshold : 0.5;
@@ -442,7 +442,7 @@ function MlScoreNote({
         </span>{' '}
         The transaction takes exposure to{' '}
         <span className="font-mono">{(provenance.exposure_after_tx_ratio ?? 0).toFixed(2)}x</span>{' '}
-        the delegated ceiling — definitionally a breach, which is what{' '}
+        the delegated ceiling. Definitionally a breach, which is what{' '}
         <span className="font-mono">INV_01</span> checks. The training labels reflect that, so a
         calibrated model saturates near 1.0 here. The model earns its keep{' '}
         <em>below</em> the ceiling, where behaviour is the only signal and no invariant settles
@@ -458,7 +458,7 @@ function MlScoreNote({
         <span className="font-mono">exposure_after_tx_ratio</span>, its top SHAP driver. Given that
         feature it reaches 0.828 recall on cross-rail splitting even with the family withheld from
         training. The deterministic invariant reaches 0.844 <em>and</em> the identical 0.844 with
-        the family seen — equal by construction, because arithmetic over the grant has no
+        the family seen. Equal by construction, because arithmetic over the grant has no
         parameter for training data to move. That equality is the argument, not the score.
       </InfoNote>
     );
@@ -466,7 +466,7 @@ function MlScoreNote({
   return (
     <InfoNote>
       A low score here is the honest case for the invariant: without a cross-rail view a single leg
-      genuinely looks like ordinary spending — a model with no aggregate feature reaches only 0.172
+      genuinely looks like ordinary spending, a model with no aggregate feature reaches only 0.172
       recall on this family. The deterministic check does not depend on having seen it.
     </InfoNote>
   );

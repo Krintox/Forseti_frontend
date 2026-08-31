@@ -149,7 +149,7 @@ export const api = {
 
 /** Indian-format currency, used everywhere amounts are shown. */
 export function inr(value: number | null | undefined, decimals = 0): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  if (value === null || value === undefined || Number.isNaN(value)) return '-';
   return `₹${value.toLocaleString('en-IN', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -157,11 +157,11 @@ export function inr(value: number | null | undefined, decimals = 0): string {
 }
 
 export function pct(value: number | null | undefined, decimals = 1): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  if (value === null || value === undefined || Number.isNaN(value)) return '-';
   return `${value.toFixed(decimals)}%`;
 }
 
 export function num(value: number | null | undefined, decimals = 4): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  if (value === null || value === undefined || Number.isNaN(value)) return '-';
   return value.toFixed(decimals);
 }

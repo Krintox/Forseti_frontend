@@ -60,7 +60,7 @@ export default function SettingsPage() {
               <Row label="Feature schema" value={env.feature_schema_version} />
             </dl>
           ) : (
-            <p className="text-xs text-slate-400">No training metadata — run the training pipeline.</p>
+            <p className="text-xs text-slate-400">No training metadata, run the training pipeline.</p>
           )}
           {env?.package_versions && (
             <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1">
@@ -174,7 +174,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 pb-1 last:border-0">
       <dt className="shrink-0 text-slate-500">{label}</dt>
-      <dd className="truncate text-right font-mono font-semibold text-slate-800">{value ?? '—'}</dd>
+      <dd className="truncate text-right font-mono font-semibold text-slate-800">{value ?? '-'}</dd>
     </div>
   );
 }

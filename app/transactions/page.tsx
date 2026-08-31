@@ -112,13 +112,13 @@ export default function TransactionMonitorPage() {
                       {String(r.rail ?? '').replace(/_/g, ' ')}
                     </td>
                     <td className="py-2 font-mono font-bold text-slate-900">{inr(r.amount)}</td>
-                    <td className="py-2 text-slate-600">{r.merchant ?? '—'}</td>
-                    <td className="py-2 font-mono text-slate-500">{r.mcc ?? '—'}</td>
+                    <td className="py-2 text-slate-600">{r.merchant ?? '-'}</td>
+                    <td className="py-2 font-mono text-slate-500">{r.mcc ?? '-'}</td>
                     <td className="py-2">
                       {r.local ? (
                         <Badge tone={r.local === 'APPROVED' ? 'amber' : 'slate'}>{r.local}</Badge>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </td>
                     <td className="py-2">
@@ -127,7 +127,7 @@ export default function TransactionMonitorPage() {
                           {r.dtl === 'CONTAINED_BY_DTL' ? 'CONTAINED' : 'WITHIN AUTHORITY'}
                         </Badge>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </td>
                     <td className="py-2 font-mono">
@@ -136,7 +136,7 @@ export default function TransactionMonitorPage() {
                       ) : r.ml !== undefined && r.ml !== null ? (
                         num(r.ml, 4)
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </td>
                     <td className="py-2 font-mono text-slate-600">{inr(r.exposureAfter)}</td>
@@ -149,7 +149,7 @@ export default function TransactionMonitorPage() {
         <div className="mt-4">
           <InfoNote>
             Rows showing <strong>APPROVED</strong> beside <strong>CONTAINED</strong> are the exact
-            contradiction FORSETI exists to resolve — locally valid, globally unauthorised.
+            contradiction FORSETI exists to resolve, locally valid, globally unauthorised.
           </InfoNote>
         </div>
       </Card>

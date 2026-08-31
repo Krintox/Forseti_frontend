@@ -37,7 +37,7 @@ export default function OverviewPage() {
     <>
       <PageHeader
         title="Executive Overview"
-        description="FORSETI protects delegated authority, not a spend ceiling: a delegated agent may act only within the authority it was granted, across all seven dimensions of the grant — amount, per-transaction size, rail, merchant, beneficiary, purpose and time."
+        description="FORSETI protects delegated authority, not a spend ceiling: a delegated agent may act only within the authority it was granted, across all seven dimensions of the grant. Amount, per-transaction size, rail, merchant, beneficiary, purpose and time."
       >
         <Link href="/arena">
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-blue-700">
@@ -61,7 +61,7 @@ export default function OverviewPage() {
           <div className="rounded-xl border border-blue-300 bg-white p-4 shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-wide text-blue-700">FORSETI asks</p>
             <p className="mt-1.5 text-sm font-bold text-slate-900">
-              “Is this agent still acting within the authority it was given — amount, rail, merchant,
+              “Is this agent still acting within the authority it was given. Amount, rail, merchant,
               purpose and time, all at once?”
             </p>
           </div>
@@ -79,7 +79,7 @@ export default function OverviewPage() {
         <Stat
           label="Detector"
           value={state?.detector_status?.model_loaded ? 'LOADED' : 'NOT TRAINED'}
-          hint={state?.detector_status?.backend ?? '—'}
+          hint={state?.detector_status?.backend ?? '-'}
           tone={state?.detector_status?.model_loaded ? 'success' : 'warning'}
           icon={<Cpu className="h-3.5 w-3.5 text-slate-400" />}
         />
@@ -100,7 +100,7 @@ export default function OverviewPage() {
         <Stat
           label="PQC audit"
           value={state?.pqc_status?.available ? 'ML-DSA-44' : 'UNAVAILABLE'}
-          hint={state?.pqc_status?.backend ?? state?.pqc_status?.unavailable_reason ?? '—'}
+          hint={state?.pqc_status?.backend ?? state?.pqc_status?.unavailable_reason ?? '-'}
           tone={state?.pqc_status?.available ? 'success' : 'warning'}
           icon={<Lock className="h-3.5 w-3.5 text-slate-400" />}
         />
@@ -120,8 +120,8 @@ export default function OverviewPage() {
               <thead>
                 <tr className="border-b border-slate-200 text-[10px] uppercase tracking-wide text-slate-500">
                   <th className="pb-2 font-bold">Architecture</th>
-                  <th className="pb-2 font-bold">Recall — family held out</th>
-                  <th className="pb-2 font-bold">Recall — family seen</th>
+                  <th className="pb-2 font-bold">Recall, family held out</th>
+                  <th className="pb-2 font-bold">Recall, family seen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -141,10 +141,10 @@ export default function OverviewPage() {
                         {label}
                       </td>
                       <td className="py-2 font-mono font-bold">
-                        {held === null || held === undefined ? '—' : pct(held * 100, 1)}
+                        {held === null || held === undefined ? '-' : pct(held * 100, 1)}
                       </td>
                       <td className="py-2 font-mono font-bold">
-                        {seen === null || seen === undefined ? '—' : pct(seen * 100, 1)}
+                        {seen === null || seen === undefined ? '-' : pct(seen * 100, 1)}
                       </td>
                     </tr>
                   );
@@ -169,7 +169,7 @@ export default function OverviewPage() {
             <HealthRow
               label="Trained model"
               ok={Boolean(health?.model_loaded)}
-              detail={health?.model_backend ?? '—'}
+              detail={health?.model_backend ?? '-'}
             />
             <HealthRow
               label="Genuine SHAP"
@@ -179,7 +179,7 @@ export default function OverviewPage() {
             <HealthRow
               label="Post-quantum signing"
               ok={Boolean(health?.pqc_available)}
-              detail={health?.pqc_backend ?? '—'}
+              detail={health?.pqc_backend ?? '-'}
             />
           </ul>
           {health?.artifacts_missing?.length > 0 && (
@@ -263,7 +263,7 @@ function AuthorityDimensions() {
 
   const describe = (key: string): string => {
     const row: any = (vector as any)[key];
-    if (!row) return '—';
+    if (!row) return '-';
     if (key === 'AMOUNT') return inr(row.granted);
     if (key === 'PER_TX') return row.granted == null ? 'unconstrained' : inr(row.granted);
     if (key === 'RAIL') {
@@ -275,15 +275,15 @@ function AuthorityDimensions() {
       const scope: string[] = row.granted ?? [];
       return scope.length ? scope.join(' · ') : 'any beneficiary';
     }
-    if (key === 'PURPOSE') return String(row.granted ?? '—');
+    if (key === 'PURPOSE') return String(row.granted ?? '-');
     if (key === 'TIME') return row.expired ? 'EXPIRED' : `${row.granted_hours}h window`;
-    return '—';
+    return '-';
   };
 
   return (
     <Card
       title="What the user actually delegated"
-      subtitle="Authority is multidimensional — the money limit is one row of seven, and each has its own invariant"
+      subtitle="Authority is multidimensional, the money limit is one row of seven, and each has its own invariant"
       right={<Badge tone="blue">live grant</Badge>}
     >
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -325,7 +325,7 @@ function AuthorityDimensions() {
       </div>
       <div className="mt-3">
         <InfoNote>
-          An agent can stay inside the amount and still break the grant — wrong rail, wrong
+          An agent can stay inside the amount and still break the grant. Wrong rail, wrong
           merchant, wrong basket, or after the mandate lapsed. Each row is enforced
           deterministically, so none of them depends on having seen the attack before.
         </InfoNote>

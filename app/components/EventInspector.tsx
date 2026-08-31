@@ -9,7 +9,7 @@ import { Badge } from './ui';
 
 /**
  * Slide-over that explains ONE event: what happened, how, why the actor did it,
- * and why it matters — for both Red and Blue actions.
+ * and why it matters, for both Red and Blue actions.
  *
  * The explanation comes from the AI layer. When no model is reachable the API
  * returns a deterministic template built from the same event fields, and the
@@ -153,7 +153,7 @@ export function EventInspector({
                   <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                     <p className="text-[10px] font-semibold text-slate-600">
                       {isFallback
-                        ? 'Deterministic template — no language model was reachable, so this is built from the event fields themselves.'
+                        ? 'Deterministic template, no language model was reachable, so this is built from the event fields themselves.'
                         : `Explained by ${data?.llm?.provider ?? 'model'} / ${data?.llm?.model ?? ''}` +
                           (data?.llm?.cached ? ' (cached)' : '')}
                     </p>

@@ -165,8 +165,8 @@ export function Provenance({ artifact }: { artifact: ArtifactEnvelope | null }) 
   if (!artifact || isArtifactMissing(artifact)) return null;
   const meta = artifact._artifact;
   const expId =
-    artifact.experiment_id ?? artifact.metadata?.experiment_id ?? artifact.benchmark_id ?? '—';
-  const seed = artifact.seed ?? artifact.metadata?.seed ?? artifact.environment?.seed ?? '—';
+    artifact.experiment_id ?? artifact.metadata?.experiment_id ?? artifact.benchmark_id ?? '-';
+  const seed = artifact.seed ?? artifact.metadata?.seed ?? artifact.environment?.seed ?? '-';
   return (
     <div className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-slate-500">
       <span className="break-words">experiment: {String(expId)}</span>

@@ -12,7 +12,7 @@ import { inr } from '../lib/api';
  * This exists because the most important thing FORSETI demonstrates is easy to
  * miss in a scrolling log: an agent can stay UNDER the delegated budget, get a
  * yes from every payment rail it touches, score as ordinary to a trained
- * fraud model — and still be acting outside the authority a human granted.
+ * fraud model, and still be acting outside the authority a human granted.
  *
  * Every figure here is read from the event stream the backend emitted this
  * round. Nothing is precomputed and nothing is asserted that the events do not
@@ -161,7 +161,7 @@ export function VerdictBanner() {
               {outcome === 'CONTAINED'
                 ? 'Contained'
                 : outcome === 'UNCHECKED_BREACH'
-                  ? 'Breached — no global check'
+                  ? 'Breached, no global check'
                   : deceptionOnly
                     ? 'Deception flagged'
                     : 'No violation'}
@@ -179,13 +179,13 @@ export function VerdictBanner() {
             <Fact
               label="Payment rails"
               value={`${railsApproved} approved`}
-              verdict={railsApproved > 0 ? 'ALL SAID YES' : '—'}
+              verdict={railsApproved > 0 ? 'ALL SAID YES' : '-'}
               ok={railsApproved === 0}
             />
             <Fact
               label="ML risk score"
               value={maxMl === null ? 'not scored' : `${(maxMl * 100).toFixed(1)}%`}
-              verdict={maxMl === null ? '—' : maxMl >= 0.5 ? 'FLAGGED' : 'LOOKS ORDINARY'}
+              verdict={maxMl === null ? '-' : maxMl >= 0.5 ? 'FLAGGED' : 'LOOKS ORDINARY'}
               ok={maxMl !== null && maxMl >= 0.5}
             />
             {risk && (
@@ -204,7 +204,7 @@ export function VerdictBanner() {
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
             <p className="text-[12.5px] leading-relaxed text-slate-800">
               <span className="font-black text-emerald-800">
-                Even though {headlineClause} — FORSETI blocked it anyway.
+                Even though {headlineClause}. FORSETI blocked it anyway.
               </span>{' '}
               The agent broke the <strong>{DIMENSION_COPY[dimension]?.label ?? dimension}</strong>{' '}
               dimension of the grant: {DIMENSION_COPY[dimension]?.because ?? 'it acted outside the delegated authority'}.
@@ -221,7 +221,7 @@ export function VerdictBanner() {
             The grant was still exceeded on the{' '}
             <strong>{DIMENSION_COPY[dimension ?? '']?.label ?? dimension ?? 'authority'}</strong>{' '}
             dimension: {DIMENSION_COPY[dimension ?? '']?.because ?? 'the agent acted outside its delegated authority'}
-            {' '}— the view no single rail can compute.
+            {' '}, the view no single rail can compute.
             <span className="ml-1 font-mono text-[11px] text-slate-500">({invariant})</span>
           </p>
         )}
@@ -229,7 +229,7 @@ export function VerdictBanner() {
         {deceptionOnly && (
           <p className="mt-3 text-[11px] leading-relaxed text-amber-900">
             <span className="font-bold">Detected, and deliberately not contained.</span> The
-            Deception Lab flagged the input, and the payment still went through — correctly,
+            Deception Lab flagged the input, and the payment still went through. Correctly,
             because it breached no dimension of the grant. That is the stronger claim: the field
             this attack targets is never read by any invariant, firewall check or cost-governor
             decision, so it could not have changed the outcome even unflagged. Containment quality
@@ -244,7 +244,7 @@ export function VerdictBanner() {
               ({(maxMl * 100).toFixed(1)}%).
             </span>{' '}
             Both statements are true and neither overrides the other. The invariants are arithmetic
-            over what the principal authorised, and this spend stayed inside it — so FORSETI does
+            over what the principal authorised, and this spend stayed inside it, so FORSETI does
             not intervene. The classifier is reading behavioural shape (transaction velocity,
             deviation from the rail's own mean), which is a genuine signal and not a breach of
             authority. A probability is not a violation, and treating it as one is how a
@@ -256,7 +256,7 @@ export function VerdictBanner() {
         {outcome === 'WITHIN_AUTHORITY' && !(maxMl !== null && maxMl >= 0.5) && (
           <p className="mt-2.5 text-[12px] leading-relaxed text-slate-700">
             The agent stayed inside every dimension of the grant, so nothing fired. This is the
-            system working, not a miss — FORSETI only intervenes when delegated authority is
+            system working, not a miss. FORSETI only intervenes when delegated authority is
             actually exceeded.
           </p>
         )}
