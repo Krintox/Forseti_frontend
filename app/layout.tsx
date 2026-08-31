@@ -4,7 +4,7 @@ import { ArenaProvider } from './lib/ArenaProvider';
 import { Shell } from './components/Shell';
 
 export const metadata: Metadata = {
-  title: 'FORSETI. Delegated Authority. Global Integrity.',
+  title: 'FORSETI: Delegated Authority. Global Integrity.',
   description:
     'Cross-rail delegation-authority defense for agentic payments. Every metric shown is produced by an executable pipeline.',
 };
